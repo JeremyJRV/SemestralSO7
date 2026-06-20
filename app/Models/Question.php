@@ -1,74 +1,26 @@
 <?php
-
 namespace App\Models;
 
-use Illuminate\Database\Eloquent\Factories\HasFactory;
-use Illuminate\Database\Eloquent\Model;
-use Illuminate\Database\Eloquent\SoftDeletes;
+use clases\Model;
+use clases\Database;
 
-/**
- * Modelo Question
- * Representa las preguntas del sistema
- * Tipos: opción_múltiple, verdadero_falso
- */
 class Question extends Model
 {
-    use HasFactory, SoftDeletes;
+    protected static string $table = 'questions';
 
-    protected $fillable = [
-        'theme_id',
-        'level_id',
-        'question_text',
-        'type', // opción_múltiple, verdadero_falso
-        'correct_answer_id',
-        'explanation',
-        'difficulty_score',
-        'is_active',
-    ];
-
-    protected $casts = [
-        'is_active' => 'boolean',
-        'created_at' => 'datetime',
-        'updated_at' => 'datetime',
-    ];
-
-    /**
-     * Relación: Una pregunta pertenece a un tema
-     */
-    public function theme()
+    // Preguntas por tema-nivel
+    public static function byThemeLevel(int $themeLevelId): array
     {
-        return $this->belongsTo(Theme::class);
+        $db = Database::getInstance()->getConnection();
+        $stmt = $db->prepare("SELECT * FROM questions WHERE theme_level_id = :tlid");
+        $stmt->execute(['tlid' => $themeLevelId]);
+        $rows = $stmt->fetchAll();
+        return array_map(fn($row) => new self($row), $rows);
     }
 
-    /**
-     * Relación: Una pregunta pertenece a un nivel
-     */
-    public function level()
+    // Obtener opciones de la pregunta
+    public function options(): array
     {
-        return $this->belongsTo(Level::class);
-    }
-
-    /**
-     * Relación: Una pregunta tiene muchas opciones
-     */
-    public function options()
-    {
-        return $this->hasMany(Option::class);
-    }
-
-    /**
-     * Relación: Una pregunta tiene muchas respuestas de usuarios
-     */
-    public function gameResponses()
-    {
-        return $this->hasMany(GameResponse::class);
-    }
-
-    /**
-     * Obtiene la opción correcta
-     */
-    public function getCorrectOption()
-    {
-        return $this->options()->find($this->correct_answer_id);
+        return Option::where('question_id', $this->id);
     }
 }

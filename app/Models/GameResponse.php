@@ -1,66 +1,27 @@
 <?php
-
 namespace App\Models;
 
-use Illuminate\Database\Eloquent\Factories\HasFactory;
-use Illuminate\Database\Eloquent\Model;
+use clases\Model;
+use clases\Database;
 
-/**
- * Modelo GameResponse
- * Registra las respuestas dadas por los usuarios en cada pregunta
- */
 class GameResponse extends Model
 {
-    use HasFactory;
+    protected static string $table = 'game_responses';
 
-    protected $table = 'game_responses';
-
-    protected $fillable = [
-        'game_session_id',
-        'user_id',
-        'question_id',
-        'selected_option_id',
-        'is_correct',
-        'time_spent_seconds',
-        'answered_at',
-    ];
-
-    protected $casts = [
-        'is_correct' => 'boolean',
-        'answered_at' => 'datetime',
-        'created_at' => 'datetime',
-        'updated_at' => 'datetime',
-    ];
-
-    /**
-     * Relación: Una respuesta pertenece a una sesión de juego
-     */
-    public function gameSession()
+    // Método 'where' con varias condiciones (para simplificar)
+    public static function whereMultiple(array $conditions): array
     {
-        return $this->belongsTo(GameSession::class);
-    }
-
-    /**
-     * Relación: Una respuesta pertenece a un usuario
-     */
-    public function user()
-    {
-        return $this->belongsTo(User::class);
-    }
-
-    /**
-     * Relación: Una respuesta pertenece a una pregunta
-     */
-    public function question()
-    {
-        return $this->belongsTo(Question::class);
-    }
-
-    /**
-     * Relación: Una respuesta pertenece a una opción seleccionada
-     */
-    public function selectedOption()
-    {
-        return $this->belongsTo(Option::class, 'selected_option_id');
+        $db = Database::getInstance()->getConnection();
+        $where = [];
+        $params = [];
+        foreach ($conditions as $field => $value) {
+            $where[] = "$field = :$field";
+            $params[$field] = $value;
+        }
+        $sql = "SELECT * FROM game_responses WHERE " . implode(' AND ', $where);
+        $stmt = $db->prepare($sql);
+        $stmt->execute($params);
+        $rows = $stmt->fetchAll();
+        return array_map(fn($row) => new self($row), $rows);
     }
 }

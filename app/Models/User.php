@@ -1,113 +1,27 @@
 <?php
-
 namespace App\Models;
 
-use Illuminate\Database\Eloquent\Factories\HasFactory;
-use Illuminate\Database\Eloquent\Model;
-use Illuminate\Database\Eloquent\SoftDeletes;
+use clases\Model;
+use clases\Database;
 
-/**
- * Modelo User
- * Representa los usuarios del sistema con roles: Jugador, Armador, Administrador
- */
 class User extends Model
 {
-    use HasFactory, SoftDeletes;
+    protected static string $table = 'users';
 
-    protected $fillable = [
-        'email',
-        'password',
-        'name',
-        'nickname',
-        'role', // jugador, armador, administrador
-        'avatar_path',
-        'is_active',
-        'account_locked_until',
-    ];
-
-    protected $hidden = ['password'];
-
-    protected $casts = [
-        'is_active' => 'boolean',
-        'account_locked_until' => 'datetime',
-        'email_verified_at' => 'datetime',
-        'created_at' => 'datetime',
-        'updated_at' => 'datetime',
-    ];
-
-    /**
-     * Relación: Un usuario tiene muchos intentos de login
-     */
-    public function loginAttempts()
+    // Buscar por email (para login)
+    public static function findByEmail(string $email): ?self
     {
-        return $this->hasMany(LoginAttempt::class);
+        $db = Database::getInstance()->getConnection();
+        $stmt = $db->prepare("SELECT * FROM users WHERE email = :email LIMIT 1");
+        $stmt->execute(['email' => $email]);
+        $row = $stmt->fetch();
+        return $row ? new self($row) : null;
     }
 
-    /**
-     * Relación: Un usuario tiene muchos niveles completados
-     */
-    public function userLevels()
+    // Total de puntos (puede ser calculado, pero se guarda en la columna total_points)
+    public function addPoints(int $points): void
     {
-        return $this->hasMany(UserLevel::class);
-    }
-
-    /**
-     * Relación: Un usuario tiene muchos premios
-     */
-    public function prizes()
-    {
-        return $this->belongsToMany(Prize::class, 'user_prizes')
-                    ->withTimestamps();
-    }
-
-    /**
-     * Relación: Un usuario tiene muchas calificaciones de temas
-     */
-    public function themeRatings()
-    {
-        return $this->hasMany(UserThemeRating::class);
-    }
-
-    /**
-     * Relación: Un usuario participa en muchas sesiones de juego
-     */
-    public function gameSessions()
-    {
-        return $this->hasMany(GameSession::class);
-    }
-
-    /**
-     * Relación: Un usuario da muchas respuestas
-     */
-    public function gameResponses()
-    {
-        return $this->hasMany(GameResponse::class);
-    }
-
-    /**
-     * Verifica si la cuenta está bloqueada
-     */
-    public function isAccountLocked(): bool
-    {
-        return $this->account_locked_until && now() < $this->account_locked_until;
-    }
-
-    /**
-     * Obtiene el nivel actual del usuario en un tema
-     */
-    public function getCurrentLevel($themeId)
-    {
-        return $this->userLevels()
-                    ->where('theme_id', $themeId)
-                    ->latest('updated_at')
-                    ->first();
-    }
-
-    /**
-     * Obtiene puntos totales del usuario
-     */
-    public function getTotalPoints(): int
-    {
-        return $this->userLevels()->sum('points') ?? 0;
+        $this->total_points += $points;
+        $this->save();
     }
 }

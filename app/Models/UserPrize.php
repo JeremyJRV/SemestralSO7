@@ -1,45 +1,24 @@
 <?php
-
 namespace App\Models;
 
-use Illuminate\Database\Eloquent\Factories\HasFactory;
-use Illuminate\Database\Eloquent\Model;
+use clases\Model;
+use clases\Database;
 
-/**
- * Modelo UserPrize
- * Tabla pivote que registra qué premios ha obtenido cada usuario
- */
 class UserPrize extends Model
 {
-    use HasFactory;
+    protected static string $table = 'user_prizes';
+    protected static string $primaryKey = 'user_id'; // compuesto, pero consultamos por user_id
 
-    protected $table = 'user_prizes';
-
-    protected $fillable = [
-        'user_id',
-        'prize_id',
-        'obtained_at',
-    ];
-
-    protected $casts = [
-        'obtained_at' => 'datetime',
-        'created_at' => 'datetime',
-        'updated_at' => 'datetime',
-    ];
-
-    /**
-     * Relación: Un registro pertenece a un usuario
-     */
-    public function user()
+    public static function byUser(int $userId): array
     {
-        return $this->belongsTo(User::class);
-    }
-
-    /**
-     * Relación: Un registro pertenece a un premio
-     */
-    public function prize()
-    {
-        return $this->belongsTo(Prize::class);
+        $db = Database::getInstance()->getConnection();
+        $stmt = $db->prepare(
+            "SELECT p.name, p.image, p.points_value, up.awarded_at
+             FROM user_prizes up
+             JOIN prizes p ON up.prize_id = p.id
+             WHERE up.user_id = :uid"
+        );
+        $stmt->execute(['uid' => $userId]);
+        return $stmt->fetchAll();
     }
 }

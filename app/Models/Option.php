@@ -1,34 +1,28 @@
 <?php
-
 namespace App\Models;
 
-use Illuminate\Database\Eloquent\Factories\HasFactory;
-use Illuminate\Database\Eloquent\Model;
+use clases\Model;
+use clases\Database;
 
-/**
- * Modelo Option
- * Representa las opciones de respuesta de cada pregunta
- */
 class Option extends Model
 {
-    use HasFactory;
+    protected static string $table = 'options';
 
-    protected $fillable = [
-        'question_id',
-        'option_text',
-        'order',
-    ];
-
-    protected $casts = [
-        'created_at' => 'datetime',
-        'updated_at' => 'datetime',
-    ];
-
-    /**
-     * Relación: Una opción pertenece a una pregunta
-     */
-    public function question()
+    // Eliminar todas las opciones de una pregunta
+    public static function deleteByQuestion(int $questionId): void
     {
-        return $this->belongsTo(Question::class);
+        $db = Database::getInstance()->getConnection();
+        $stmt = $db->prepare("DELETE FROM options WHERE question_id = :qid");
+        $stmt->execute(['qid' => $questionId]);
+    }
+
+    // Helper: obtener opciones por ID de pregunta
+    public static function where(string $field, $value): array
+    {
+        $db = Database::getInstance()->getConnection();
+        $stmt = $db->prepare("SELECT * FROM options WHERE $field = :val");
+        $stmt->execute(['val' => $value]);
+        $rows = $stmt->fetchAll();
+        return array_map(fn($row) => new self($row), $rows);
     }
 }
