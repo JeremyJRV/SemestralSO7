@@ -1,48 +1,24 @@
 <?php
-
 namespace App\Models;
 
-use Illuminate\Database\Eloquent\Factories\HasFactory;
-use Illuminate\Database\Eloquent\Model;
-use Illuminate\Database\Eloquent\SoftDeletes;
+use clases\Model;
+use clases\Database;
 
-/**
- * Modelo Prize
- * Representa los premios que se otorgan al completar niveles
- */
 class Prize extends Model
 {
-    use HasFactory, SoftDeletes;
+    protected static string $table = 'prizes';
 
-    protected $fillable = [
-        'name',
-        'description',
-        'image_path',
-        'points_value',
-        'is_active',
-    ];
-
-    protected $casts = [
-        'is_active' => 'boolean',
-        'created_at' => 'datetime',
-        'updated_at' => 'datetime',
-    ];
-
-    /**
-     * Relación: Un premio pertenece a muchos usuarios
-     */
-    public function users()
+    // Sincronizar niveles (para guardar relaciones muchos a muchos)
+    public function syncLevels(array $levelIds): void
     {
-        return $this->belongsToMany(User::class, 'user_prizes')
-                    ->withTimestamps();
-    }
-
-    /**
-     * Relación: Un premio pertenece a muchos niveles
-     */
-    public function levels()
-    {
-        return $this->belongsToMany(Level::class, 'level_prize')
-                    ->withTimestamps();
+        $db = Database::getInstance()->getConnection();
+        // Borrar existentes
+        $stmt = $db->prepare("DELETE FROM prize_levels WHERE prize_id = :pid");
+        $stmt->execute(['pid' => $this->id]);
+        // Insertar nuevos
+        $stmt = $db->prepare("INSERT INTO prize_levels (prize_id, level_id) VALUES (:pid, :lid)");
+        foreach ($levelIds as $lid) {
+            $stmt->execute(['pid' => $this->id, 'lid' => $lid]);
+        }
     }
 }

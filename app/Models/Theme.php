@@ -1,70 +1,29 @@
 <?php
-
 namespace App\Models;
 
-use Illuminate\Database\Eloquent\Factories\HasFactory;
-use Illuminate\Database\Eloquent\Model;
-use Illuminate\Database\Eloquent\SoftDeletes;
+use clases\Model;
+use clases\Database;
 
-/**
- * Modelo Theme
- * Representa los temas: PHP, JavaScript, Laravel
- */
 class Theme extends Model
 {
-    use HasFactory, SoftDeletes;
+    protected static string $table = 'themes';
 
-    protected $fillable = [
-        'name',
-        'description',
-        'icon_path',
-        'is_active',
-    ];
-
-    protected $casts = [
-        'is_active' => 'boolean',
-        'created_at' => 'datetime',
-        'updated_at' => 'datetime',
-    ];
-
-    /**
-     * Relación: Un tema tiene muchas preguntas
-     */
-    public function questions()
+    // Temas más jugados (basado en game_responses)
+    public static function mostPlayed(int $limit = 5): array
     {
-        return $this->hasMany(Question::class);
-    }
-
-    /**
-     * Relación: Un tema tiene muchos niveles
-     */
-    public function levels()
-    {
-        return $this->belongsToMany(Level::class, 'theme_level')
-                    ->withTimestamps();
-    }
-
-    /**
-     * Relación: Un tema tiene muchas calificaciones de usuarios
-     */
-    public function userRatings()
-    {
-        return $this->hasMany(UserThemeRating::class);
-    }
-
-    /**
-     * Obtiene el promedio de calificación del tema
-     */
-    public function getAverageRating(): float
-    {
-        return $this->userRatings()->avg('rating') ?? 0;
-    }
-
-    /**
-     * Obtiene el total de veces que se jugó el tema
-     */
-    public function getTotalPlays(): int
-    {
-        return $this->userRatings()->count();
+        $db = Database::getInstance()->getConnection();
+        $stmt = $db->prepare(
+            "SELECT t.id, t.name, COUNT(gr.id) as total_responses
+             FROM themes t
+             JOIN theme_levels tl ON tl.theme_id = t.id
+             JOIN game_sessions gs ON gs.theme_level_id = tl.id
+             JOIN game_responses gr ON gr.session_id = gs.id
+             GROUP BY t.id
+             ORDER BY total_responses DESC
+             LIMIT :limit"
+        );
+        $stmt->bindValue(':limit', $limit, \PDO::PARAM_INT);
+        $stmt->execute();
+        return $stmt->fetchAll();
     }
 }

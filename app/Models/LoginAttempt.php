@@ -1,54 +1,49 @@
 <?php
-
 namespace App\Models;
 
-use Illuminate\Database\Eloquent\Factories\HasFactory;
-use Illuminate\Database\Eloquent\Model;
+use clases\Model;
+use clases\Database;
 
-/**
- * Modelo LoginAttempt
- * Registra todos los intentos de login (exitosos y fallidos) para auditoría
- * Implementa control de seguridad: máximo 3 intentos fallidos
- */
 class LoginAttempt extends Model
 {
-    use HasFactory;
+    protected static string $table = 'login_attempts';
 
-    protected $table = 'login_attempts';
-
-    protected $fillable = [
-        'user_id',
-        'email',
-        'ip_address',
-        'user_agent',
-        'is_successful',
-        'attempted_at',
-    ];
-
-    protected $casts = [
-        'is_successful' => 'boolean',
-        'attempted_at' => 'datetime',
-        'created_at' => 'datetime',
-        'updated_at' => 'datetime',
-    ];
-
-    /**
-     * Relación: Un intento pertenece a un usuario (puede ser null si no existe)
-     */
-    public function user()
+    // Registrar intento
+    public static function log(?int $userId, string $ip, bool $success): void
     {
-        return $this->belongsTo(User::class);
+        $attempt = new self([
+            'user_id' => $userId,
+            'ip_address' => $ip,
+            'success' => $success ? 1 : 0
+        ]);
+        $attempt->save();
     }
 
-    /**
-     * Obtiene intentos fallidos recientes (últimos 30 minutos)
-     */
-    public static function getRecentFailedAttempts($email, $minutes = 30)
+    // Verificar si la IP está bloqueada (3 fallos en los últimos 15 minutos)
+    public static function isBlocked(string $ip): bool
     {
-        return self::where('email', $email)
-                   ->where('is_successful', false)
-                   ->where('attempted_at', '>=', now()->subMinutes($minutes))
-                   ->orderBy('attempted_at', 'desc')
-                   ->get();
+        $db = Database::getInstance()->getConnection();
+        $stmt = $db->prepare(
+            "SELECT COUNT(*) as attempts FROM login_attempts
+             WHERE ip_address = :ip AND success = 0
+             AND attempted_at > DATE_SUB(NOW(), INTERVAL 15 MINUTE)"
+        );
+        $stmt->execute(['ip' => $ip]);
+        $row = $stmt->fetch();
+        return $row['attempts'] >= 3;
+    }
+
+    // Intentos restantes
+    public static function remainingAttempts(string $ip): int
+    {
+        $db = Database::getInstance()->getConnection();
+        $stmt = $db->prepare(
+            "SELECT COUNT(*) as attempts FROM login_attempts
+             WHERE ip_address = :ip AND success = 0
+             AND attempted_at > DATE_SUB(NOW(), INTERVAL 15 MINUTE)"
+        );
+        $stmt->execute(['ip' => $ip]);
+        $row = $stmt->fetch();
+        return max(0, 3 - (int)$row['attempts']);
     }
 }

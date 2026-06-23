@@ -1,13 +1,8 @@
 <?php
-
 namespace App\Exceptions;
 
-use Exception;
-
-class InsufficientPermissionsException extends Exception
+class InsufficientPermissionsException extends \Exception
 {
-    public function __construct($message = 'Permisos insuficientes', $code = 0)
-    {
-        parent::__construct($message, $code);
-    }
+    protected $message = 'No tienes permisos para realizar esta acción.';
+    protected $code = 403;
 }

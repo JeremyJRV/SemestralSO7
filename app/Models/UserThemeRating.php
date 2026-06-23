@@ -1,47 +1,41 @@
 <?php
-
 namespace App\Models;
 
-use Illuminate\Database\Eloquent\Factories\HasFactory;
-use Illuminate\Database\Eloquent\Model;
+use clases\Model;
+use clases\Database;
 
-/**
- * Modelo UserThemeRating
- * Registra las calificaciones "Me gusta" de los usuarios para cada tema
- * Valores: 1 (Aburrido), 2 (Interesante), 3 (Genial)
- */
 class UserThemeRating extends Model
 {
-    use HasFactory;
+    protected static string $table = 'user_theme_ratings';
 
-    protected $table = 'user_theme_ratings';
-
-    protected $fillable = [
-        'user_id',
-        'theme_id',
-        'rating', // 1, 2, 3
-        'rated_at',
-    ];
-
-    protected $casts = [
-        'rated_at' => 'datetime',
-        'created_at' => 'datetime',
-        'updated_at' => 'datetime',
-    ];
-
-    /**
-     * Relación: Una calificación pertenece a un usuario
-     */
-    public function user()
+    public static function updateOrCreate(int $userId, int $themeId, string $rating): void
     {
-        return $this->belongsTo(User::class);
+        $db = Database::getInstance()->getConnection();
+        $stmt = $db->prepare(
+            "INSERT INTO user_theme_ratings (user_id, theme_id, rating)
+             VALUES (:uid, :tid, :rating)
+             ON DUPLICATE KEY UPDATE rating = :rating2"
+        );
+        $stmt->execute([
+            'uid' => $userId,
+            'tid' => $themeId,
+            'rating' => $rating,
+            'rating2' => $rating
+        ]);
     }
 
-    /**
-     * Relación: Una calificación pertenece a un tema
-     */
-    public function theme()
+    public static function averageRatings(): array
     {
-        return $this->belongsTo(Theme::class);
+        $db = Database::getInstance()->getConnection();
+        $stmt = $db->query(
+            "SELECT t.id, t.name,
+                    COUNT(CASE WHEN r.rating = 'boring' THEN 1 END) as boring,
+                    COUNT(CASE WHEN r.rating = 'interesting' THEN 1 END) as interesting,
+                    COUNT(CASE WHEN r.rating = 'great' THEN 1 END) as great
+             FROM themes t
+             LEFT JOIN user_theme_ratings r ON t.id = r.theme_id
+             GROUP BY t.id"
+        );
+        return $stmt->fetchAll();
     }
 }

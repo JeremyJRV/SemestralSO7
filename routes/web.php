@@ -1,46 +1,76 @@
 <?php
+// Auth
+$router->get('/login', 'AuthController', 'showLogin');
+$router->post('/login', 'AuthController', 'login');
+$router->get('/register', 'AuthController', 'showRegister');
+$router->post('/register', 'AuthController', 'register');
+$router->get('/logout', 'AuthController', 'logout');
 
-use Illuminate\Support\Facades\Route;
+// Dashboard
+$router->get('/dashboard', 'DashboardController', 'index');
 
-/**
- * RUTAS WEB - Landing Page y Páginas Públicas
- */
+// Juego
+$router->get('/game', 'GameController', 'selectMode');
+$router->get('/game/start/{themeLevelId}', 'GameController', 'start');
+$router->get('/game/play/{sessionId}', 'GameController', 'play');
+$router->post('/game/submit/{sessionId}', 'GameController', 'submitAnswers');
+$router->get('/game/results/{sessionId}', 'GameController', 'results');
 
-// Home / Landing Page
-Route::get('/', function () {
-    return view('welcome');
-})->name('home');
+// Multijugador
+$router->get('/game/room/create', 'GameController', 'createRoom');
+$router->post('/game/room/store', 'GameController', 'storeRoom');
+$router->get('/game/room/{roomCode}', 'GameController', 'joinRoom');
 
-// Sobre el sistema
-Route::get('/about', function () {
-    return view('pages.about');
-})->name('about');
+// Perfil
+$router->get('/profile', 'ProfileController', 'show');
+$router->post('/profile/avatar', 'ProfileController', 'updateAvatar');
 
-// Contacto
-Route::get('/contact', function () {
-    return view('pages.contact');
-})->name('contact');
+// Estadísticas
+$router->get('/statistics', 'StatisticsController', 'index');
 
-Route::post('/contact', 'ContactController@store')->name('contact.store');
+// Admin Usuarios
+$router->get('/admin/users', 'UserController', 'index');
+$router->get('/admin/users/create', 'UserController', 'create');
+$router->post('/admin/users/store', 'UserController', 'store');
+$router->get('/admin/users/edit/{id}', 'UserController', 'edit');
+$router->post('/admin/users/update/{id}', 'UserController', 'update');
+$router->get('/admin/users/delete/{id}', 'UserController', 'delete');
 
-// Encuesta pública (landing page)
-Route::get('/survey', function () {
-    return view('pages.survey');
-})->name('survey');
+// Admin Temas
+$router->get('/admin/themes', 'ThemeController', 'index');
+$router->get('/admin/themes/create', 'ThemeController', 'create');
+$router->post('/admin/themes/store', 'ThemeController', 'store');
+$router->get('/admin/themes/edit/{id}', 'ThemeController', 'edit');
+$router->post('/admin/themes/update/{id}', 'ThemeController', 'update');
+$router->get('/admin/themes/delete/{id}', 'ThemeController', 'delete');
 
-Route::post('/survey', 'SurveyController@store')->name('survey.store');
+// Rating de temas (ajax)
+$router->post('/themes/rate', 'ThemeController', 'rate');
 
-// Dashboard (requiere autenticación)
-Route::middleware('auth:sanctum')->group(function () {
-    Route::get('/dashboard', function () {
-        return view('dashboard.index');
-    })->name('dashboard');
+// Admin Preguntas
+$router->get('/admin/questions', 'QuestionController', 'index');
+$router->get('/admin/questions/create', 'QuestionController', 'create');
+$router->post('/admin/questions/store', 'QuestionController', 'store');
+$router->get('/admin/questions/edit/{id}', 'QuestionController', 'edit');
+$router->post('/admin/questions/update/{id}', 'QuestionController', 'update');
+$router->get('/admin/questions/delete/{id}', 'QuestionController', 'delete');
 
-    Route::get('/game', function () {
-        return view('game.play');
-    })->name('game.play');
+// Admin Premios
+$router->get('/admin/prizes', 'PrizeController', 'index');
+$router->get('/admin/prizes/create', 'PrizeController', 'create');
+$router->post('/admin/prizes/store', 'PrizeController', 'store');
+$router->get('/admin/prizes/edit/{id}', 'PrizeController', 'edit');
+$router->post('/admin/prizes/update/{id}', 'PrizeController', 'update');
+$router->get('/admin/prizes/delete/{id}', 'PrizeController', 'delete');
 
-    Route::get('/profile', function () {
-        return view('profile.show');
-    })->name('profile');
-});
+// Landing pública
+$router->get('/', 'LandingController', 'index');
+$router->get('/about', 'LandingController', 'about');
+$router->get('/contact', 'LandingController', 'contact');
+
+// Promocional con encuestas
+$router->get('/promo', 'PromoController', 'index');
+$router->post('/promo/submit-survey', 'PromoController', 'submitSurvey');
+
+// Reporte Excel (admin)
+$router->get('/admin/report', 'AdminController', 'downloadReport');
