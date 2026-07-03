@@ -1,0 +1,18 @@
+{
+    "name": "trivias/sistema",
+    "description": "Sistema de Trivias para aprendizaje de PHP y JavaScript",
+    "type": "project",
+    "require": {
+        "php": ">=7.4",
+        "phpoffice/phpspreadsheet": "^1.29"
+    },
+    "autoload": {
+        "psr-4": {
+            "Clases\\": "clases/",
+            "App\\": "app/"
+        }
+    },
+    "config": {
+        "optimize-autoloader": true
+    }
+}
