@@ -11,7 +11,7 @@
                 <?php endforeach; ?>
             <?php endforeach; ?>
         <?php endif; ?>
-        <form method="POST" action="/login">
+        <form method="POST" action="<?= APP_URL ?>/login">
             <input type="hidden" name="csrf_token" value="<?= $csrfToken ?>">
             <div class="mb-3">
                 <label>Email</label>
@@ -26,6 +26,6 @@
             <?php endif; ?>
             <button type="submit" class="btn btn-primary w-100 mt-2">Entrar</button>
         </form>
-        <p class="mt-3">¿No tienes cuenta? <a href="/register">Regístrate gratis</a></p>
+        <p class="mt-3">¿No tienes cuenta? <a href="<?= APP_URL ?>/register">Regístrate gratis</a></p>
     </div>
 </div>

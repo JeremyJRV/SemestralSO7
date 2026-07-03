@@ -9,36 +9,36 @@
 <body>
     <nav class="navbar navbar-expand-lg navbar-dark bg-primary">
         <div class="container">
-            <a class="navbar-brand" href="/dashboard">Trivias</a>
+            <a class="navbar-brand" href="<?= APP_URL ?>/dashboard">Trivias</a>
             <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarMain">
                 <span class="navbar-toggler-icon"></span>
             </button>
             <div class="collapse navbar-collapse" id="navbarMain">
                 <ul class="navbar-nav me-auto">
-                    <li class="nav-item"><a class="nav-link" href="/game">Jugar</a></li>
-                    <li class="nav-item"><a class="nav-link" href="/profile">Perfil</a></li>
-                    <li class="nav-item"><a class="nav-link" href="/statistics">Estadísticas</a></li>
-                    <?php if (in_array($role, ['armador','admin'])): ?>
+                    <li class="nav-item"><a class="nav-link" href="<?= APP_URL ?>/game">Jugar</a></li>
+                    <li class="nav-item"><a class="nav-link" href="<?= APP_URL ?>/profile">Perfil</a></li>
+                    <li class="nav-item"><a class="nav-link" href="<?= APP_URL ?>/statistics">Estadísticas</a></li>
+                    <?php if (in_array($role ?? 'guest', ['armador','admin'])): ?>
                     <li class="nav-item dropdown">
                         <a class="nav-link dropdown-toggle" href="#" role="button" data-bs-toggle="dropdown">Administración</a>
                         <ul class="dropdown-menu">
-                            <li><a class="dropdown-item" href="/admin/users">Usuarios</a></li>
-                            <li><a class="dropdown-item" href="/admin/themes">Temas</a></li>
-                            <li><a class="dropdown-item" href="/admin/questions">Preguntas</a></li>
-                            <li><a class="dropdown-item" href="/admin/prizes">Premios</a></li>
+                            <li><a class="dropdown-item" href="<?= APP_URL ?>/admin/users">Usuarios</a></li>
+                            <li><a class="dropdown-item" href="<?= APP_URL ?>/admin/themes">Temas</a></li>
+                            <li><a class="dropdown-item" href="<?= APP_URL ?>/admin/questions">Preguntas</a></li>
+                            <li><a class="dropdown-item" href="<?= APP_URL ?>/admin/prizes">Premios</a></li>
                         </ul>
                     </li>
                     <?php endif; ?>
                 </ul>
                 <ul class="navbar-nav">
-                    <li class="nav-item"><span class="navbar-text"><?= htmlspecialchars($user->username) ?></span></li>
-                    <li class="nav-item"><a class="nav-link" href="/logout">Salir</a></li>
+                    <li class="nav-item"><span class="navbar-text"><?= htmlspecialchars($user->username ?? '') ?></span></li>
+                    <li class="nav-item"><a class="nav-link" href="<?= APP_URL ?>/logout">Salir</a></li>
                 </ul>
             </div>
         </div>
     </nav>
     <div class="container mt-4">
-        <?= $content ?>
+        <?= $content ?? '' ?>
     </div>
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
 </body>

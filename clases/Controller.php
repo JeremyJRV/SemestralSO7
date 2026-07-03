@@ -31,6 +31,11 @@ abstract class Controller
 
     protected function redirect(string $url): void
     {
+        // Si es una ruta interna (empieza con "/"), le anteponemos APP_URL
+        // para que funcione dentro de la subcarpeta del proyecto (ej: /SemestralSO7/public)
+        if (str_starts_with($url, '/') && defined('APP_URL')) {
+            $url = APP_URL . $url;
+        }
         header("Location: $url");
         exit;
     }

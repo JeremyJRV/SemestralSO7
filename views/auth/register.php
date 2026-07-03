@@ -11,7 +11,7 @@
                 <?php endforeach; ?>
             <?php endforeach; ?>
         <?php endif; ?>
-        <form method="POST" action="/register">
+        <form method="POST" action="<?= APP_URL ?>/register">
             <input type="hidden" name="csrf_token" value="<?= $csrfToken ?>">
             <div class="mb-3">
                 <label>Nombre de usuario</label>

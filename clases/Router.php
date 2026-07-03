@@ -23,6 +23,13 @@ class Router
     public function dispatch(string $requestUri, string $requestMethod): void
     {
         $uri = parse_url($requestUri, PHP_URL_PATH);
+
+        // Quitar el prefijo de la subcarpeta del proyecto (ej: /SemestralSO7/public)
+        $basePath = '/SemestralSO7/public';
+        if (strpos($uri, $basePath) === 0) {
+            $uri = substr($uri, strlen($basePath));
+        }
+
         $uri = rtrim($uri, '/') ?: '/';
 
         foreach ($this->routes as $route) {
