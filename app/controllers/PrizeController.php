@@ -15,7 +15,6 @@ class PrizeController extends Controller
     {
         $this->requireRole(['armador', 'admin']);
 
-        // Obtener datos directamente con PDO
         $db = Database::getInstance()->getConnection();
         $stmt = $db->query("SELECT id, name, image, points_value, signature FROM prizes");
         $rows = $stmt->fetchAll();
@@ -26,26 +25,21 @@ class PrizeController extends Controller
         $unsignedCount = 0;
 
         foreach ($rows as $row) {
-            // Crear objeto Prize con los datos
             $prize = new Prize($row);
-
-            // ASIGNAR EXPLÍCITAMENTE la propiedad signature
             $prize->signature = $row['signature'] ?? null;
 
-            // Determinar estado de integridad
             if (empty($row['signature'])) {
-                $prize->_status = 'unsigned';
+                $prize->_corrupted = false;
                 $unsignedCount++;
             } else {
                 $data = $row;
                 unset($data['signature']);
                 $isValid = DigitalSignature::verify($data, $row['signature']);
+                $prize->_corrupted = !$isValid;
 
                 if ($isValid) {
-                    $prize->_status = 'verified';
                     $signedCount++;
                 } else {
-                    $prize->_status = 'corrupted';
                     $corruptedCount++;
                 }
             }
@@ -80,7 +74,7 @@ class PrizeController extends Controller
 
         $prize = new Prize([
             'name' => $_POST['name'],
-            'points_value' => $_POST['points_value'],
+            'points_value' => (int)$_POST['points_value'],
             'image' => $this->uploadImage('image')
         ]);
 
@@ -90,9 +84,11 @@ class PrizeController extends Controller
             $prize->syncLevels($_POST['levels']);
         }
 
+        // RECARGAR EL PREMIO DESDE LA BASE DE DATOS PARA ASEGURAR QUE LA FIRMA ESTÉ DISPONIBLE
+        $prize = Prize::find($prize->id);
+
         $this->redirect('/admin/prizes');
     }
-
     public function edit($id)
     {
         $this->requireRole(['armador', 'admin']);
@@ -156,12 +152,17 @@ class PrizeController extends Controller
         $this->requireRole(['armador', 'admin']);
 
         $db = Database::getInstance()->getConnection();
+
+        // Eliminar relaciones primero
+        $db->prepare("DELETE FROM prize_levels WHERE prize_id = :pid")->execute(['pid' => $id]);
+        $db->prepare("DELETE FROM user_prizes WHERE prize_id = :pid")->execute(['pid' => $id]);
+
+        // Luego eliminar el premio
         $stmt = $db->prepare("DELETE FROM prizes WHERE id = :id");
         $stmt->execute(['id' => $id]);
 
-        $this->redirect('/admin/prizes');
+        -$this->redirect('/admin/prizes');
     }
-
     private function uploadImage($field): string
     {
         if (empty($_FILES[$field]['name']) || $_FILES[$field]['error'] !== UPLOAD_ERR_OK) {

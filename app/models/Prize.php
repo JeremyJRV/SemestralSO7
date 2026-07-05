@@ -1,4 +1,5 @@
 <?php
+
 namespace App\Models;
 
 use clases\Model;
@@ -22,25 +23,46 @@ class Prize extends Model
 
     public function saveWithSignature(): bool
     {
-        $data = $this->attributes;
-        unset($data['signature']);
-        $signed = DigitalSignature::signData($data);
-        $this->attributes = $signed;
-        return $this->save();
+        // Guardar primero para obtener el ID
+        $result = $this->save();
+
+        if ($result && isset($this->attributes['id'])) {
+            // Ahora que tenemos ID, generamos la firma con el ID incluido
+            $data = [
+                'id' => $this->attributes['id'],
+                'name' => $this->attributes['name'],
+                'image' => $this->attributes['image'] ?? 'default.png',
+                'points_value' => (int)($this->attributes['points_value'] ?? 0)
+            ];
+
+            $signature = DigitalSignature::sign($data);
+            $this->attributes['signature'] = $signature;
+
+            // Actualizar solo la firma
+            $db = Database::getInstance()->getConnection();
+            $stmt = $db->prepare("UPDATE prizes SET signature = :sig WHERE id = :id");
+            $stmt->execute(['sig' => $signature, 'id' => $this->attributes['id']]);
+        }
+
+        return $result;
     }
 
     public function verifyIntegrity(): bool
     {
-        if (empty($this->attributes['signature'])) {
+        if (empty($this->attributes['signature']) || empty($this->attributes['id'])) {
             return false;
         }
-        $data = $this->attributes;
-        $signature = $data['signature'];
-        unset($data['signature']);
+
+        $data = [
+            'id' => $this->attributes['id'],
+            'name' => $this->attributes['name'],
+            'image' => $this->attributes['image'] ?? 'default.png',
+            'points_value' => (int)($this->attributes['points_value'] ?? 0)
+        ];
+
+        $signature = $this->attributes['signature'];
         return DigitalSignature::verify($data, $signature);
     }
-
-    // Este método ahora permite editar incluso si la firma es inválida
     public static function findForEdit(int $id): ?self
     {
         $db = Database::getInstance()->getConnection();
@@ -57,7 +79,6 @@ class Prize extends Model
     {
         $prize = self::find($id);
         if ($prize && !$prize->verifyIntegrity()) {
-            // Si la firma es inválida, marcamos el error pero retornamos el objeto igual
             $prize->_corrupted = true;
             return $prize;
         }

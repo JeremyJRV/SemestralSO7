@@ -364,9 +364,12 @@
         <tbody>
             <?php foreach ($prizes as $prize): ?>
                 <?php
-                // Verificar si tiene firma directamente desde el objeto
+                // Determinar estado de integridad
                 $hasSignature = !empty($prize->signature);
-                $isCorrupted = isset($prize->_corrupted) && $prize->_corrupted;
+                $isCorrupted = isset($prize->_corrupted) && $prize->_corrupted === true;
+
+                // Si tiene firma y no está marcado como corrupto, está verificado
+                $isVerified = $hasSignature && !$isCorrupted;
                 ?>
                 <tr class="<?= $isCorrupted ? 'corrupted' : '' ?>">
                     <td>#<?= $prize->id ?></td>
@@ -377,19 +380,23 @@
                     <td><span class="badge-prize-points"><?= $prize->points_value ?> pts</span></td>
                     <td style="text-align:center;">
                         <?php
-                        $status = $prize->_status ?? 'unsigned';
+                        // Verificar si tiene firma (buscando en attributes o directamente)
+                        $signature = $prize->attributes['signature'] ?? $prize->signature ?? null;
+                        $hasSignature = !empty($signature);
+                        $isCorrupted = isset($prize->_corrupted) && $prize->_corrupted === true;
                         ?>
-                        <?php if ($status === 'corrupted'): ?>
+
+                        <?php if ($isCorrupted): ?>
                             <span class="integrity-badge-innovative invalid">
-                                <i class="bi bi-x-circle"></i> Corrupto
+                                <i class="bi bi-x-circle"></i> CORRUPTO
                             </span>
-                        <?php elseif ($status === 'verified'): ?>
+                        <?php elseif ($hasSignature): ?>
                             <span class="integrity-badge-innovative valid">
-                                <i class="bi bi-check-circle"></i> Verificado
+                                <i class="bi bi-check-circle"></i> VERIFICADO
                             </span>
                         <?php else: ?>
                             <span class="integrity-badge-innovative unsigned">
-                                <i class="bi bi-exclamation-triangle"></i> Sin firma
+                                <i class="bi bi-exclamation-triangle"></i> SIN FIRMA
                             </span>
                         <?php endif; ?>
                     </td>
