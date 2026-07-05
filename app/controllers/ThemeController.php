@@ -33,14 +33,14 @@ class ThemeController extends Controller
             'created_by' => Session::get('user_id')
         ]);
         $theme->save();
-        $this->redirect('/themes');
+        $this->redirect('/admin/themes');
     }
 
     public function edit($id)
     {
         $this->requireRole(['armador', 'admin']);
         $theme = Theme::find($id);
-        if (!$theme) $this->redirect('/themes');
+        if (!$theme) $this->redirect('/admin/themes');
         $csrfToken = Session::csrfToken();
         $this->render('themes/form', ['csrfToken' => $csrfToken, 'theme' => $theme]);
     }
@@ -50,11 +50,11 @@ class ThemeController extends Controller
         $this->requireRole(['armador', 'admin']);
         $this->csrfCheck();
         $theme = Theme::find($id);
-        if (!$theme) $this->redirect('/themes');
+        if (!$theme) $this->redirect('/admin/themes');
         $theme->name = $_POST['name'];
         $theme->description = $_POST['description'] ?? '';
         $theme->save();
-        $this->redirect('/themes');
+        $this->redirect('/admin/themes');
     }
 
     public function delete($id)
@@ -62,10 +62,9 @@ class ThemeController extends Controller
         $this->requireRole(['armador', 'admin']);
         $theme = Theme::find($id);
         if ($theme) $theme->delete();
-        $this->redirect('/themes');
+        $this->redirect('/admin/themes');
     }
 
-    // Rating "Me gusta"
     public function rate()
     {
         $userId = Session::get('user_id');
@@ -84,7 +83,6 @@ class ThemeController extends Controller
         $this->json(['success' => true]);
     }
 
-    // Helper sobrecargado para aceptar array de roles
     protected function requireRole(array|string $roles): void
     {
         $userRole = Session::get('user_role');

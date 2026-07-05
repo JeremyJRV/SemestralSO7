@@ -1,5 +1,5 @@
 <h2><?= isset($prize) ? 'Editar Premio' : 'Nuevo Premio' ?></h2>
-<form method="POST" enctype="multipart/form-data" action="<?= isset($prize) ? "/prizes/update/{$prize->id}" : '/prizes/store' ?>">
+<form method="POST" enctype="multipart/form-data" action="<?= isset($prize) ? APP_URL . "/admin/prizes/update/{$prize->id}" : APP_URL . '/admin/prizes/store' ?>">
     <input type="hidden" name="csrf_token" value="<?= $csrfToken ?>">
     <div class="mb-3">
         <label>Nombre</label>
@@ -13,7 +13,7 @@
         <label>Imagen</label>
         <input type="file" name="image" class="form-control">
         <?php if (isset($prize) && $prize->image): ?>
-            <img src="/images/prizes/<?= $prize->image ?>" width="80" class="mt-2">
+            <img src="<?= APP_URL ?>/images/prizes/<?= $prize->image ?>" width="80" class="mt-2">
         <?php endif; ?>
     </div>
     <div class="mb-3">

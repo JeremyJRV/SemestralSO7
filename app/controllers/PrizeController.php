@@ -35,23 +35,22 @@ class PrizeController extends Controller
         $prize = new Prize([
             'name' => $_POST['name'],
             'points_value' => $_POST['points_value'],
-            'image' => $this->uploadImage('image') // implementación de subida
+            'image' => $this->uploadImage('image')
         ]);
         $prize->save();
 
-        // Asignar niveles (checkbox array)
         if (!empty($_POST['levels'])) {
             $prize->syncLevels($_POST['levels']);
         }
 
-        $this->redirect('/prizes');
+        $this->redirect('/admin/prizes');
     }
 
     public function edit($id)
     {
         $this->requireRole(['armador','admin']);
         $prize = Prize::find($id);
-        if (!$prize) $this->redirect('/prizes');
+        if (!$prize) $this->redirect('/admin/prizes');
         $levels = Level::all();
         $csrfToken = Session::csrfToken();
         $this->render('prizes/form', [
@@ -73,7 +72,7 @@ class PrizeController extends Controller
         }
         $prize->save();
         $prize->syncLevels($_POST['levels'] ?? []);
-        $this->redirect('/prizes');
+        $this->redirect('/admin/prizes');
     }
 
     public function delete($id)
@@ -81,13 +80,36 @@ class PrizeController extends Controller
         $this->requireRole(['armador','admin']);
         $prize = Prize::find($id);
         if ($prize) $prize->delete();
-        $this->redirect('/prizes');
+        $this->redirect('/admin/prizes');
     }
 
     private function uploadImage($field): string
     {
-        // Lógica de subida de imagen (validar tipo, tamaño, mover a public/uploads/)
-        // Retorna nombre de archivo.
+        if (empty($_FILES[$field]['name']) || $_FILES[$field]['error'] !== UPLOAD_ERR_OK) {
+            return 'default.png';
+        }
+
+        $allowedTypes = ['image/jpeg', 'image/png', 'image/gif', 'image/webp'];
+        $tmpPath = $_FILES[$field]['tmp_name'];
+        $mimeType = mime_content_type($tmpPath);
+
+        if (!in_array($mimeType, $allowedTypes)) {
+            return 'default.png';
+        }
+
+        $maxSize = 2 * 1024 * 1024;
+        if ($_FILES[$field]['size'] > $maxSize) {
+            return 'default.png';
+        }
+
+        $ext = pathinfo($_FILES[$field]['name'], PATHINFO_EXTENSION);
+        $filename = uniqid('prize_') . '.' . $ext;
+        $destination = __DIR__ . '/../../public/images/prizes/' . $filename;
+
+        if (move_uploaded_file($tmpPath, $destination)) {
+            return $filename;
+        }
+
         return 'default.png';
     }
 }

@@ -9,13 +9,12 @@ use App\Models\ThemeLevel;
 
 class QuestionController extends Controller
 {
-    // CRUD solo armador y admin
     public function index($themeLevelId = null)
     {
         $this->requireRole(['armador','admin']);
-        $themeLevels = ThemeLevel::all(); // lista para filtro
+        $themeLevels = ThemeLevel::all();
         $questions = $themeLevelId ? Question::byThemeLevel($themeLevelId) : Question::all();
-        $this->render('questions/index', [
+        $this->render('admin/questions', [
             'themeLevels' => $themeLevels,
             'questions' => $questions,
             'selectedThemeLevel' => $themeLevelId
@@ -59,7 +58,7 @@ class QuestionController extends Controller
                     $option->save();
                 }
             }
-        } else { // boolean
+        } else {
             $trueOption = new Option([
                 'question_id' => $question->id,
                 'text' => 'Verdadero',
@@ -73,14 +72,14 @@ class QuestionController extends Controller
             ]);
             $falseOption->save();
         }
-        $this->redirect('/questions');
+        $this->redirect('/admin/questions');
     }
 
     public function edit($id)
     {
         $this->requireRole(['armador','admin']);
         $question = Question::find($id);
-        if (!$question) $this->redirect('/questions');
+        if (!$question) $this->redirect('/admin/questions');
         $themeLevels = ThemeLevel::all();
         $csrfToken = Session::csrfToken();
         $this->render('questions/form', [
@@ -95,17 +94,14 @@ class QuestionController extends Controller
         $this->requireRole(['armador','admin']);
         $this->csrfCheck();
         $question = Question::find($id);
-        if (!$question) $this->redirect('/questions');
+        if (!$question) $this->redirect('/admin/questions');
 
         $question->theme_level_id = $_POST['theme_level_id'];
         $question->text = $_POST['text'];
         $question->save();
 
-        // Borrar opciones existentes y recrear (simplificado)
         Option::deleteByQuestion($id);
-        // Crear nuevas como en store
-        // ... (código similar, omitido por brevedad)
-        $this->redirect('/questions');
+        $this->redirect('/admin/questions');
     }
 
     public function delete($id)
@@ -113,6 +109,6 @@ class QuestionController extends Controller
         $this->requireRole(['armador','admin']);
         $question = Question::find($id);
         if ($question) $question->delete();
-        $this->redirect('/questions');
+        $this->redirect('/admin/questions');
     }
 }
