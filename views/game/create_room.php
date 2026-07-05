@@ -5,7 +5,7 @@
         <label>Tema y Nivel</label>
         <select name="theme_level_id" class="form-select">
             <?php foreach ($themeLevels as $tl): ?>
-                <option value="<?= $tl->id ?>"><?= htmlspecialchars($tl->theme_name) ?> - <?= htmlspecialchars($tl->level_name) ?></option>
+                <option value="<?= $tl['id'] ?>"><?= htmlspecialchars($tl['theme_name']) ?> - <?= htmlspecialchars($tl['level_name']) ?></option>
             <?php endforeach; ?>
         </select>
     </div>

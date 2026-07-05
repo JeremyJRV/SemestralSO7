@@ -16,7 +16,6 @@ class GameController extends Controller
         $this->gameService = new GameService();
     }
 
-    // Selección de tema/nivel para jugar
     public function selectMode()
     {
         $userId = Session::get('user_id');
@@ -26,7 +25,6 @@ class GameController extends Controller
         $this->render('game/select', ['levels' => $availableLevels]);
     }
 
-    // Iniciar partida (single player)
     public function start($themeLevelId)
     {
         $userId = Session::get('user_id');
@@ -36,8 +34,11 @@ class GameController extends Controller
 
     public function play($sessionId)
     {
+        $userId = Session::get('user_id');
+        if (!$userId) $this->redirect('/login');
+
         $session = GameSession::find($sessionId);
-        if (!$session || $session->host_user_id != Session::get('user_id')) {
+        if (!$session) {
             $this->redirect('/game');
         }
         $questions = $this->gameService->getQuestionsForSession($session->theme_level_id);
@@ -53,11 +54,20 @@ class GameController extends Controller
         $userId = Session::get('user_id');
         $this->csrfCheck();
 
+        // Evitar doble envío: si ya existen respuestas de este usuario para esta sesión, no procesar de nuevo
+        $existing = GameResponse::whereMultiple([
+            'session_id' => $sessionId,
+            'user_id' => $userId
+        ]);
+        if (!empty($existing)) {
+            $this->redirect("/game/results/{$sessionId}");
+            return;
+        }
+
         $answers = $_POST['answers'] ?? [];
         $responseTimes = $_POST['times'] ?? [];
 
         $this->gameService->processAnswers($sessionId, $userId, $answers, $responseTimes);
-        // Redirigir a resultados (las estadísticas se recalculan ahí desde la BD)
         $this->redirect("/game/results/{$sessionId}");
     }
 
@@ -69,7 +79,6 @@ class GameController extends Controller
             'user_id' => Session::get('user_id')
         ]);
 
-        // Recalcular estadísticas a partir de las respuestas guardadas
         $total = count($responses);
         $correct = 0;
         $totalTime = 0;
@@ -92,12 +101,16 @@ class GameController extends Controller
         $this->render('game/results', ['session' => $session, 'responses' => $responses, 'result' => $result]);
     }
 
-    // Multijugador (crear sala)
     public function createRoom()
     {
         $this->requireRole(['armador','admin']);
+        $userId = Session::get('user_id');
+        $themeLevels = $this->gameService->getAvailableLevelsForUser($userId);
         $csrfToken = Session::csrfToken();
-        $this->render('game/create_room', ['csrfToken' => $csrfToken]);
+        $this->render('game/create_room', [
+            'csrfToken' => $csrfToken,
+            'themeLevels' => $themeLevels
+        ]);
     }
 
     public function storeRoom()
@@ -116,6 +129,17 @@ class GameController extends Controller
 
     public function joinRoom($roomCode)
     {
-        // Vista para unirse a sala
+        $userId = Session::get('user_id');
+        if (!$userId) $this->redirect('/login');
+
+        $session = GameSession::findByRoomCode($roomCode);
+        if (!$session) {
+            $this->redirect('/game');
+        }
+
+        $this->render('game/room', [
+            'roomCode' => $roomCode,
+            'sessionId' => $session->id
+        ]);
     }
 }

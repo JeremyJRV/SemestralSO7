@@ -5,3 +5,9 @@
 2026-07-05 03:37:56 - Exception: Vista no encontrada: questions/index in C:\wamp64\www\SemestralSO7\clases\Controller.php:20
 2026-07-05 03:38:57 - Exception: Vista no encontrada: questions/index in C:\wamp64\www\SemestralSO7\clases\Controller.php:20
 2026-07-05 03:40:14 - Exception: Vista no encontrada: questions/index in C:\wamp64\www\SemestralSO7\clases\Controller.php:20
+2026-07-05 05:01:58 - Exception: Controlador no encontrado: App\Controllers\GameController in C:\wamp64\www\SemestralSO7\clases\Router.php:42
+2026-07-05 05:02:03 - Exception: Controlador no encontrado: App\Controllers\GameController in C:\wamp64\www\SemestralSO7\clases\Router.php:42
+2026-07-05 05:02:17 - Exception: Controlador no encontrado: App\Controllers\GameController in C:\wamp64\www\SemestralSO7\clases\Router.php:42
+2026-07-05 05:02:22 - Exception: Controlador no encontrado: App\Controllers\GameController in C:\wamp64\www\SemestralSO7\clases\Router.php:42
+2026-07-05 05:02:24 - Exception: Controlador no encontrado: App\Controllers\GameController in C:\wamp64\www\SemestralSO7\clases\Router.php:42
+2026-07-05 12:03:14 - Exception: Controlador no encontrado: App\Controllers\GameController in C:\wamp64\www\SemestralSO7\clases\Router.php:42
