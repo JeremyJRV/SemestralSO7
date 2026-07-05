@@ -53,11 +53,11 @@ class GameController extends Controller
         $userId = Session::get('user_id');
         $this->csrfCheck();
 
-        $answers = $_POST['answers'] ?? []; // formato [question_id => response]
+        $answers = $_POST['answers'] ?? [];
         $responseTimes = $_POST['times'] ?? [];
 
-        $result = $this->gameService->processAnswers($sessionId, $userId, $answers, $responseTimes);
-        // Redirigir a resultados
+        $this->gameService->processAnswers($sessionId, $userId, $answers, $responseTimes);
+        // Redirigir a resultados (las estadísticas se recalculan ahí desde la BD)
         $this->redirect("/game/results/{$sessionId}");
     }
 
@@ -65,11 +65,31 @@ class GameController extends Controller
     {
         $session = GameSession::find($sessionId);
         $responses = GameResponse::whereMultiple([
-         'session_id' => $sessionId,
-         'user_id' => Session::get('user_id')
+            'session_id' => $sessionId,
+            'user_id' => Session::get('user_id')
         ]);
-        // Calcular estadísticas...
-        $this->render('game/results', ['session' => $session, 'responses' => $responses]);
+
+        // Recalcular estadísticas a partir de las respuestas guardadas
+        $total = count($responses);
+        $correct = 0;
+        $totalTime = 0;
+        foreach ($responses as $r) {
+            if ($r->is_correct) $correct++;
+            $totalTime += (int)$r->response_time_ms;
+        }
+        $percentage = $total > 0 ? round(($correct / $total) * 100, 2) : 0;
+        $avgTime = $total > 0 ? $totalTime / $total : 0;
+        $pointsEarned = $correct * 10;
+
+        $result = [
+            'correct' => $correct,
+            'total' => $total,
+            'percentage' => $percentage,
+            'avg_time_ms' => $avgTime,
+            'points_earned' => $pointsEarned
+        ];
+
+        $this->render('game/results', ['session' => $session, 'responses' => $responses, 'result' => $result]);
     }
 
     // Multijugador (crear sala)

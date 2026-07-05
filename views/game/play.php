@@ -1,5 +1,5 @@
 <h2><?= htmlspecialchars($session->id) ?> - Preguntas</h2>
-<form method="POST" action="/game/submit/<?= $session->id ?>" id="gameForm">
+<form method="POST" action="<?= APP_URL ?>/game/submit/<?= $session->id ?>" id="gameForm">
     <input type="hidden" name="csrf_token" value="<?= $csrfToken ?>">
     <?php foreach ($questions as $index => $question): ?>
         <div class="card mb-3">

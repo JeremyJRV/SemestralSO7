@@ -10,7 +10,7 @@
         <?php endforeach; ?>
     </select>
 </form>
-<a href="/admin/questions/create" class="btn btn-primary mb-3">Nueva Pregunta</a>
+<a href="<?= APP_URL ?>/admin/questions/create" class="btn btn-primary mb-3">Nueva Pregunta</a>
 <table class="table">
     <thead><tr><th>ID</th><th>Texto</th><th>Tipo</th><th>Acciones</th></tr></thead>
     <tbody>
@@ -20,8 +20,8 @@
             <td><?= htmlspecialchars($q->text) ?></td>
             <td><?= $q->type ?></td>
             <td>
-                <a href="/admin/questions/edit/<?= $q->id ?>" class="btn btn-sm btn-warning">Editar</a>
-                <a href="/admin/questions/delete/<?= $q->id ?>" class="btn btn-sm btn-danger">Eliminar</a>
+                <a href="<?= APP_URL ?>/admin/questions/edit/<?= $q->id ?>" class="btn btn-sm btn-warning">Editar</a>
+                <a href="<?= APP_URL ?>/admin/questions/delete/<?= $q->id ?>" class="btn btn-sm btn-danger">Eliminar</a>
             </td>
         </tr>
         <?php endforeach; ?>

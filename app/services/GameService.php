@@ -1,4 +1,5 @@
 <?php
+
 namespace App\Services;
 
 use clases\Database;
@@ -17,11 +18,9 @@ class GameService
     // Obtener niveles disponibles para un usuario (progresión)
     public function getAvailableLevelsForUser(int $userId): array
     {
-        // Lógica: devolver todos los theme_levels cuyo level anterior esté completado.
-        // Simplificación: mostrar todos, en el controlador se puede filtrar.
         $db = Database::getInstance()->getConnection();
         $stmt = $db->query(
-            "SELECT tl.id, t.name as theme_name, l.name as level_name, l.order_index
+            "SELECT tl.id, tl.theme_id, t.name as theme_name, l.name as level_name, l.order_index
              FROM theme_levels tl
              JOIN themes t ON tl.theme_id = t.id
              JOIN levels l ON tl.level_id = l.id
@@ -29,17 +28,14 @@ class GameService
         );
         $allLevels = $stmt->fetchAll();
 
-        // Filtrar según progreso: se debe haber completado el nivel anterior (mismo tema, order_index - 1)
         $available = [];
         foreach ($allLevels as $tl) {
-            $themeId = $tl['theme_id'] ?? null;
+            $themeId = $tl['theme_id'];
             $currentOrder = $tl['order_index'];
             if ($currentOrder == 1) {
-                // Básico siempre disponible
                 $available[] = $tl;
                 continue;
             }
-            // Buscar nivel anterior dentro del mismo tema
             $prevOrder = $currentOrder - 1;
             $prev = $db->prepare(
                 "SELECT ulp.completed
@@ -56,11 +52,11 @@ class GameService
         return $available;
     }
 
-    // Crear una sesión de juego
+// Crear una sesión de juego
     public function createSession(int $userId, int $themeLevelId): GameSession
     {
         $session = new GameSession([
-            'room_code' => null, // no necesario en single player
+            'room_code' => substr(md5(uniqid()), 0, 6), // generamos un código igual, aunque sea single player
             'theme_level_id' => $themeLevelId,
             'host_user_id' => $userId
         ]);
@@ -85,7 +81,6 @@ class GameService
         $questions = [];
         foreach ($rows as $row) {
             $q = new Question($row);
-            // Adjuntar opciones
             $q->options = Option::where('question_id', $q->id);
             $questions[] = $q;
         }
@@ -99,6 +94,7 @@ class GameService
         $correctCount = 0;
         $totalQuestions = count($answers);
         $totalTime = 0;
+        $pointsEarned = 0;
 
         foreach ($answers as $questionId => $response) {
             $question = Question::find($questionId);
@@ -109,20 +105,16 @@ class GameService
             $booleanAnswer = null;
 
             if ($question->type === 'multiple') {
-                // $response es el option_id seleccionado
                 $option = Option::find($response);
                 if ($option) {
                     $isCorrect = (bool)$option->is_correct;
                     $optionId = $option->id;
                 }
-            } else { // boolean
-                // $response es '1' o '0'
+            } else {
                 $booleanAnswer = (int)$response;
-                // Buscar opción correcta
                 $correctOption = $db->prepare(
                     "SELECT id, is_correct FROM options WHERE question_id = :qid AND text = :text"
                 );
-                // Para boolean, las opciones se guardan como "Verdadero" o "Falso"
                 $correctOption->execute(['qid' => $questionId, 'text' => $booleanAnswer ? 'Verdadero' : 'Falso']);
                 $opt = $correctOption->fetch();
                 if ($opt) {
@@ -151,18 +143,9 @@ class GameService
         $percentage = $totalQuestions > 0 ? ($correctCount / $totalQuestions) * 100 : 0;
         $avgTime = $totalQuestions > 0 ? $totalTime / $totalQuestions : 0;
 
-        // Obtener el theme_level_id de la sesión
         $session = GameSession::find($sessionId);
         $themeLevelId = $session->theme_level_id;
 
-        // Guardar progreso
-        $progress = new UserLevelProgress([
-            'user_id' => $userId,
-            'theme_level_id' => $themeLevelId,
-            'score_percentage' => $percentage,
-            'completed' => $percentage >= 80 ? 1 : 0
-        ]);
-        // Si ya existía, reemplazar (INSERT ON DUPLICATE KEY UPDATE)
         $db->prepare(
             "INSERT INTO user_level_progress (user_id, theme_level_id, score_percentage, completed)
              VALUES (:uid, :tlid, :score, :comp)
@@ -176,15 +159,13 @@ class GameService
             'comp2' => $percentage >= 80 ? 1 : 0
         ]);
 
-        // Otorgar premios si completó el nivel (>=80%) y aún no los tiene
         if ($percentage >= 80) {
             $this->awardPrizes($userId, $themeLevelId);
         }
 
-        // Actualizar puntos totales del usuario
         $user = User::find($userId);
         if ($user) {
-            $pointsEarned = $correctCount * 10; // Ejemplo: 10 puntos por respuesta correcta
+            $pointsEarned = $correctCount * 10;
             $user->addPoints($pointsEarned);
         }
 
@@ -193,34 +174,30 @@ class GameService
             'total' => $totalQuestions,
             'percentage' => $percentage,
             'avg_time_ms' => $avgTime,
-            'points_earned' => $pointsEarned ?? 0
+            'points_earned' => $pointsEarned
         ];
     }
 
     private function awardPrizes(int $userId, int $themeLevelId): void
     {
         $db = Database::getInstance()->getConnection();
-        // Obtener level_id desde theme_level
         $stmt = $db->prepare("SELECT level_id FROM theme_levels WHERE id = :tlid");
         $stmt->execute(['tlid' => $themeLevelId]);
         $levelId = $stmt->fetchColumn();
 
         if (!$levelId) return;
 
-        // Obtener premios asociados al nivel
         $stmt = $db->prepare("SELECT prize_id FROM prize_levels WHERE level_id = :lid");
         $stmt->execute(['lid' => $levelId]);
         $prizeIds = $stmt->fetchAll(\PDO::FETCH_COLUMN);
 
         foreach ($prizeIds as $prizeId) {
-            // Verificar si ya tiene el premio
             $exists = $db->prepare("SELECT 1 FROM user_prizes WHERE user_id = :uid AND prize_id = :pid");
             $exists->execute(['uid' => $userId, 'pid' => $prizeId]);
             if (!$exists->fetch()) {
                 $db->prepare("INSERT INTO user_prizes (user_id, prize_id) VALUES (:uid, :pid)")
-                   ->execute(['uid' => $userId, 'pid' => $prizeId]);
+                    ->execute(['uid' => $userId, 'pid' => $prizeId]);
 
-                // Sumar puntos del premio
                 $prize = Prize::find($prizeId);
                 if ($prize) {
                     $user = User::find($userId);

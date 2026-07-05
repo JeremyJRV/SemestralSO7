@@ -17,6 +17,6 @@
         </div>
     </div>
     <div class="col-md-4">
-        <a href="/game" class="btn btn-primary btn-lg w-100">¡Jugar ahora!</a>
+        <a href="<?= APP_URL ?>/game" class="btn btn-primary btn-lg w-100">¡Jugar ahora!</a>
     </div>
 </div>

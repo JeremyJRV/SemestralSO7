@@ -5,7 +5,7 @@
             <div class="card">
                 <div class="card-body">
                     <h5><?= htmlspecialchars($tl['theme_name']) ?> - <?= htmlspecialchars($tl['level_name']) ?></h5>
-                    <a href="/game/start/<?= $tl['id'] ?>" class="btn btn-outline-primary">Empezar</a>
+                    <a href="<?= APP_URL ?>/game/start/<?= $tl['id'] ?>" class="btn btn-outline-primary">Empezar</a>
                 </div>
             </div>
         </div>

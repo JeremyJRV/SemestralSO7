@@ -1,5 +1,5 @@
 <h2>Usuarios</h2>
-<a href="/admin/users/create" class="btn btn-primary mb-3">Nuevo Usuario</a>
+<a href="<?= APP_URL ?>/admin/users/create" class="btn btn-primary mb-3">Nuevo Usuario</a>
 <table class="table table-striped">
     <thead>
         <tr><th>ID</th><th>Username</th><th>Email</th><th>Rol</th><th>Acciones</th></tr>
@@ -12,8 +12,8 @@
             <td><?= htmlspecialchars($u->email) ?></td>
             <td><?= $u->role ?></td>
             <td>
-                <a href="/admin/users/edit/<?= $u->id ?>" class="btn btn-sm btn-warning">Editar</a>
-                <a href="/admin/users/delete/<?= $u->id ?>" class="btn btn-sm btn-danger" onclick="return confirm('¿Eliminar?')">Eliminar</a>
+                <a href="<?= APP_URL ?>/admin/users/edit/<?= $u->id ?>" class="btn btn-sm btn-warning">Editar</a>
+                <a href="<?= APP_URL ?>/admin/users/delete/<?= $u->id ?>" class="btn btn-sm btn-danger" onclick="return confirm('¿Eliminar?')">Eliminar</a>
             </td>
         </tr>
         <?php endforeach; ?>

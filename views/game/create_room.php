@@ -1,5 +1,5 @@
 <h2>Crear Sala Multijugador</h2>
-<form method="POST" action="/game/room/store">
+<form method="POST" action="<?= APP_URL ?>/game/room/store">
     <input type="hidden" name="csrf_token" value="<?= $csrfToken ?>">
     <div class="mb-3">
         <label>Tema y Nivel</label>

@@ -1,0 +1,4 @@
+2026-07-05 02:45:09 - PDOException: SQLSTATE[23000]: Integrity constraint violation: 1048 Column 'room_code' cannot be null in C:\wamp64\www\SemestralSO7\clases\Model.php:76
+2026-07-05 02:45:33 - PDOException: SQLSTATE[23000]: Integrity constraint violation: 1048 Column 'room_code' cannot be null in C:\wamp64\www\SemestralSO7\clases\Model.php:76
+2026-07-05 02:45:36 - PDOException: SQLSTATE[23000]: Integrity constraint violation: 1048 Column 'room_code' cannot be null in C:\wamp64\www\SemestralSO7\clases\Model.php:76
+2026-07-05 02:46:25 - PDOException: SQLSTATE[23000]: Integrity constraint violation: 1048 Column 'room_code' cannot be null in C:\wamp64\www\SemestralSO7\clases\Model.php:76
