@@ -1,10 +1,314 @@
-<h2>Resultados</h2>
-<div class="card">
-    <div class="card-body">
-        <h5>Puntuación: <?= $result['percentage'] ?? 0 ?>%</h5>
-        <p>Respuestas correctas: <?= $result['correct'] ?? 0 ?>/<?= $result['total'] ?? 0 ?></p>
-        <p>Tiempo promedio: <?= round(($result['avg_time_ms'] ?? 0)/1000, 2) ?> segundos</p>
-        <p>Puntos ganados: <?= $result['points_earned'] ?? 0 ?></p>
-        <a href="<?= APP_URL ?>/game" class="btn btn-primary">Volver a jugar</a>
+<style>
+    .results-header-innovative {
+        padding: 2rem;
+        background: var(--bg-card);
+        border: 3px solid var(--border-dark);
+        box-shadow: var(--shadow-hard);
+        text-align: center;
+        position: relative;
+        margin-bottom: 2rem;
+    }
+
+    .results-header-innovative::before {
+        content: '★';
+        position: absolute;
+        top: -8px;
+        left: 50%;
+        transform: translateX(-50%);
+        background: var(--primary);
+        color: white;
+        padding: 0 1rem;
+        font-size: 0.8rem;
+    }
+
+    .results-header-innovative .result-icon {
+        font-size: 4rem;
+        display: block;
+        margin-bottom: 0.5rem;
+    }
+
+    .results-header-innovative .result-icon.pass {
+        color: var(--success);
+    }
+
+    .results-header-innovative .result-icon.fail {
+        color: var(--danger);
+    }
+
+    .results-header-innovative h2 {
+        font-family: var(--font-display);
+        font-weight: 900;
+        font-size: 2rem;
+        color: var(--text-dark);
+        text-transform: uppercase;
+        letter-spacing: -1px;
+    }
+
+    .results-header-innovative .result-subtitle {
+        color: var(--text-gray);
+        font-family: var(--font-display);
+        font-size: 1.1rem;
+    }
+
+    .result-stats-innovative {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+        gap: 1rem;
+        margin: 1.5rem 0;
+    }
+
+    .result-stat-innovative {
+        background: var(--bg-card);
+        border: 3px solid var(--border-dark);
+        padding: 1.2rem;
+        text-align: center;
+        box-shadow: var(--shadow-hard);
+        transition: all 0.2s ease;
+    }
+
+    .result-stat-innovative:hover {
+        transform: translate(-3px, -3px);
+        box-shadow: var(--shadow-hard-hover);
+    }
+
+    .result-stat-innovative .stat-number {
+        font-family: var(--font-display);
+        font-weight: 900;
+        font-size: 2.2rem;
+        color: var(--text-dark);
+        line-height: 1;
+    }
+
+    .result-stat-innovative .stat-number.green { color: var(--success); }
+    .result-stat-innovative .stat-number.blue { color: var(--primary); }
+    .result-stat-innovative .stat-number.orange { color: var(--warning); }
+    .result-stat-innovative .stat-number.red { color: var(--danger); }
+
+    .result-stat-innovative .stat-label {
+        font-family: var(--font-mono);
+        font-size: 0.65rem;
+        font-weight: 700;
+        text-transform: uppercase;
+        letter-spacing: 0.5px;
+        color: var(--text-light);
+        margin-top: 0.2rem;
+        display: block;
+    }
+
+    .result-detail-card {
+        background: var(--bg-card);
+        border: 3px solid var(--border-dark);
+        padding: 1.5rem;
+        box-shadow: var(--shadow-hard);
+        margin-bottom: 1rem;
+        transition: all 0.2s ease;
+    }
+
+    .result-detail-card:hover {
+        transform: translate(-2px, -2px);
+        box-shadow: var(--shadow-hard-hover);
+    }
+
+    .result-detail-card .detail-q {
+        font-family: var(--font-display);
+        font-weight: 600;
+        color: var(--text-dark);
+        margin-bottom: 0.3rem;
+    }
+
+    .result-detail-card .detail-answer {
+        font-family: var(--font-mono);
+        font-size: 0.85rem;
+        color: var(--text-gray);
+    }
+
+    .result-detail-card .detail-answer .correct {
+        color: var(--success);
+        font-weight: 700;
+    }
+
+    .result-detail-card .detail-answer .incorrect {
+        color: var(--danger);
+        font-weight: 700;
+    }
+
+    .result-detail-card .badge-result {
+        display: inline-block;
+        padding: 0.15rem 0.8rem;
+        font-family: var(--font-mono);
+        font-size: 0.6rem;
+        font-weight: 700;
+        text-transform: uppercase;
+        letter-spacing: 0.5px;
+        border: 2px solid var(--border-dark);
+    }
+
+    .badge-result-correct {
+        background: #dcfce7;
+        color: #16a34a;
+        border-color: #16a34a;
+    }
+
+    .badge-result-incorrect {
+        background: #fee2e2;
+        color: #dc2626;
+        border-color: #dc2626;
+    }
+
+    .btn-again-innovative {
+        background: var(--primary);
+        color: white !important;
+        font-family: var(--font-display);
+        font-weight: 700;
+        padding: 0.85rem 2.5rem;
+        font-size: 1rem;
+        border: 3px solid var(--border-dark);
+        transition: all 0.15s ease;
+        text-transform: uppercase;
+        letter-spacing: 1px;
+        box-shadow: 6px 6px 0px var(--border-dark);
+        text-decoration: none;
+        display: inline-block;
+    }
+
+    .btn-again-innovative:hover {
+        transform: translate(-3px, -3px);
+        box-shadow: 9px 9px 0px var(--border-dark);
+        color: white !important;
+    }
+
+    .btn-home-innovative {
+        background: transparent;
+        color: var(--text-gray);
+        font-family: var(--font-display);
+        font-weight: 600;
+        padding: 0.85rem 2.5rem;
+        font-size: 1rem;
+        border: 3px solid var(--border-dark);
+        transition: all 0.15s ease;
+        text-transform: uppercase;
+        letter-spacing: 1px;
+        text-decoration: none;
+        display: inline-block;
+    }
+
+    .btn-home-innovative:hover {
+        background: var(--border-dark);
+        color: white;
+        transform: translate(-3px, -3px);
+        box-shadow: 6px 6px 0px var(--primary);
+    }
+
+    .divider-innovative {
+        border: none;
+        border-top: 3px solid var(--border-dark);
+        margin: 2rem 0;
+        position: relative;
+    }
+
+    .divider-innovative::after {
+        content: '◆';
+        position: absolute;
+        top: 50%;
+        left: 50%;
+        transform: translate(-50%, -50%);
+        background: var(--bg-page);
+        padding: 0 1rem;
+        color: var(--primary);
+        font-size: 0.8rem;
+    }
+
+    @media (max-width: 768px) {
+        .result-stats-innovative {
+            grid-template-columns: repeat(2, 1fr);
+        }
+        .results-header-innovative h2 { font-size: 1.5rem; }
+        .result-stat-innovative .stat-number { font-size: 1.8rem; }
+        .btn-again-innovative, .btn-home-innovative {
+            width: 100%;
+            text-align: center;
+        }
+    }
+</style>
+
+<?php
+$passed = ($result['percentage'] ?? 0) >= 80;
+$icon = $passed ? '🎉' : '💪';
+$title = $passed ? '¡Excelente!' : '¡Sigue practicando!';
+$subtitle = $passed ? 'Has superado el nivel con éxito' : 'No te rindas, inténtalo de nuevo';
+$iconClass = $passed ? 'pass' : 'fail';
+?>
+
+<div class="results-header-innovative">
+    <span class="result-icon <?= $iconClass ?>"><?= $icon ?></span>
+    <h2><?= $title ?></h2>
+    <p class="result-subtitle"><?= $subtitle ?></p>
+</div>
+
+<div class="result-stats-innovative">
+    <div class="result-stat-innovative">
+        <div class="stat-number <?= $passed ? 'green' : 'red' ?>"><?= $result['percentage'] ?? 0 ?>%</div>
+        <span class="stat-label">Precisión</span>
     </div>
+    <div class="result-stat-innovative">
+        <div class="stat-number blue"><?= $result['correct'] ?? 0 ?>/<?= $result['total'] ?? 0 ?></div>
+        <span class="stat-label">Correctas / Totales</span>
+    </div>
+    <div class="result-stat-innovative">
+        <div class="stat-number orange"><?= round(($result['avg_time_ms'] ?? 0) / 1000, 1) ?>s</div>
+        <span class="stat-label">Tiempo promedio</span>
+    </div>
+    <div class="result-stat-innovative">
+        <div class="stat-number" style="background: linear-gradient(135deg, var(--primary), #7c3aed); -webkit-background-clip: text; -webkit-text-fill-color: transparent; background-clip: text;">
+            +<?= $result['points_earned'] ?? 0 ?>
+        </div>
+        <span class="stat-label">Puntos ganados</span>
+    </div>
+</div>
+
+<hr class="divider-innovative">
+
+<!-- Detalle de respuestas -->
+<?php if (!empty($responses)): ?>
+    <h4 style="font-family: var(--font-display); font-weight: 700; text-transform: uppercase; letter-spacing: 0.5px; font-size: 0.9rem; margin-bottom: 1rem;">
+        <i class="bi bi-list-ul me-2" style="color: var(--primary);"></i>Detalle de respuestas
+    </h4>
+    <?php foreach ($responses as $idx => $r): ?>
+        <div class="result-detail-card">
+            <div class="d-flex align-items-start justify-content-between gap-2">
+                <div>
+                    <div class="detail-q">
+                        <span style="font-family: var(--font-mono); font-size: 0.7rem; color: var(--text-light); margin-right: 0.5rem;">#<?= $idx + 1 ?></span>
+                        <?= htmlspecialchars($r->question_text ?? 'Pregunta') ?>
+                    </div>
+                    <div class="detail-answer">
+                        <i class="bi bi-arrow-right-short me-1"></i>
+                        Tu respuesta: 
+                        <span class="<?= $r->is_correct ? 'correct' : 'incorrect' ?>">
+                            <?= $r->is_correct ? '✓ Correcta' : '✗ Incorrecta' ?>
+                        </span>
+                        <?php if (!empty($r->response_time_ms)): ?>
+                            <span style="color: var(--text-light); font-size: 0.75rem; margin-left: 0.5rem;">
+                                (<?= round($r->response_time_ms / 1000, 1) ?>s)
+                            </span>
+                        <?php endif; ?>
+                    </div>
+                </div>
+                <span class="badge-result <?= $r->is_correct ? 'badge-result-correct' : 'badge-result-incorrect' ?>">
+                    <?= $r->is_correct ? '✓ Acierto' : '✗ Fallo' ?>
+                </span>
+            </div>
+        </div>
+    <?php endforeach; ?>
+<?php endif; ?>
+
+<hr class="divider-innovative">
+
+<div class="d-flex flex-wrap justify-content-center gap-3 mt-3">
+    <a href="<?= APP_URL ?>/game" class="btn-again-innovative">
+        <i class="bi bi-arrow-repeat me-2"></i>Jugar de nuevo
+    </a>
+    <a href="<?= APP_URL ?>/dashboard" class="btn-home-innovative">
+        <i class="bi bi-house me-2"></i>Ir al inicio
+    </a>
 </div>
