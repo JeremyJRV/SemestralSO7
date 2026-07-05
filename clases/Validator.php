@@ -16,8 +16,13 @@ class Validator
     public static function validatePassword(string $password): array|bool
     {
         $errors = [];
-        if (strlen($password) < 8 || strlen($password) > 12) {
-            $errors[] = "La contraseña debe tener entre 8 y 12 caracteres.";
+        $length = strlen($password);
+        
+        if ($length < 8) {
+            $errors[] = "La contraseña debe tener al menos 8 caracteres.";
+        }
+        if ($length > 12) {
+            $errors[] = "La contraseña no puede tener más de 12 caracteres.";
         }
         if (!preg_match('/[A-Z]/', $password)) {
             $errors[] = "Debe contener al menos una mayúscula.";
@@ -44,7 +49,6 @@ class Validator
                 if ($rule === 'email' && !self::validateEmail($value)) {
                     $errors[$field][] = "El campo $field debe ser un email válido.";
                 }
-                // Puedes añadir más reglas
             }
         }
         return $errors;

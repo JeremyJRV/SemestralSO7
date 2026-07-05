@@ -91,6 +91,15 @@
         transform: translateX(2px);
     }
 
+    .table-admin-innovative tbody tr.corrupted {
+        background: #fee2e2;
+        border-left: 4px solid #dc2626;
+    }
+
+    .table-admin-innovative tbody tr.corrupted:hover {
+        background: #fecaca;
+    }
+
     .table-admin-innovative tbody td {
         border: none;
         padding: 0.8rem 1rem;
@@ -158,6 +167,49 @@
     .btn-admin-innovative-danger:hover {
         box-shadow: 6px 6px 0px var(--border-dark);
         color: white !important;
+    }
+
+    .integrity-badge-innovative {
+        display: inline-flex;
+        align-items: center;
+        gap: 0.4rem;
+        padding: 0.2rem 0.8rem;
+        font-family: var(--font-mono);
+        font-size: 0.65rem;
+        font-weight: 700;
+        text-transform: uppercase;
+        letter-spacing: 0.3px;
+        border: 2px solid var(--border-dark);
+    }
+
+    .integrity-badge-innovative.valid {
+        background: #dcfce7;
+        color: #16a34a;
+        border-color: #16a34a;
+    }
+
+    .integrity-badge-innovative.valid i {
+        color: #16a34a;
+    }
+
+    .integrity-badge-innovative.invalid {
+        background: #fee2e2;
+        color: #dc2626;
+        border-color: #dc2626;
+    }
+
+    .integrity-badge-innovative.invalid i {
+        color: #dc2626;
+    }
+
+    .integrity-badge-innovative.unsigned {
+        background: #fef3c7;
+        color: #d97706;
+        border-color: #d97706;
+    }
+
+    .integrity-badge-innovative.unsigned i {
+        color: #d97706;
     }
 
     .admin-actions {
@@ -253,6 +305,11 @@
             font-size: 0.6rem;
             padding: 0.15rem 0.6rem;
         }
+
+        .integrity-badge-innovative {
+            font-size: 0.55rem;
+            padding: 0.1rem 0.5rem;
+        }
     }
 </style>
 
@@ -274,6 +331,21 @@
     </a>
     <div class="admin-stats-mini">
         <span>Total: <strong><?= count($prizes) ?></strong></span>
+        <?php if (isset($corruptedCount) && $corruptedCount > 0): ?>
+            <span style="background: #fee2e2; border-color: #dc2626;">
+                ⚠️ Corruptos: <strong style="color: #dc2626;"><?= $corruptedCount ?></strong>
+            </span>
+        <?php endif; ?>
+        <?php if (isset($signedCount) && $signedCount > 0): ?>
+            <span style="background: #dcfce7; border-color: #16a34a;">
+                ✅ Verificados: <strong style="color: #16a34a;"><?= $signedCount ?></strong>
+            </span>
+        <?php endif; ?>
+        <?php if (isset($unsignedCount) && $unsignedCount > 0): ?>
+            <span style="background: #fef3c7; border-color: #d97706;">
+                ⚠️ Sin firma: <strong style="color: #d97706;"><?= $unsignedCount ?></strong>
+            </span>
+        <?php endif; ?>
     </div>
 </div>
 
@@ -285,18 +357,42 @@
                 <th style="width:60px;">Imagen</th>
                 <th>Nombre</th>
                 <th>Puntos</th>
+                <th style="text-align:center;">Integridad</th>
                 <th style="text-align:center; width:150px;">Acciones</th>
             </tr>
         </thead>
         <tbody>
             <?php foreach ($prizes as $prize): ?>
-                <tr>
+                <?php
+                // Verificar si tiene firma directamente desde el objeto
+                $hasSignature = !empty($prize->signature);
+                $isCorrupted = isset($prize->_corrupted) && $prize->_corrupted;
+                ?>
+                <tr class="<?= $isCorrupted ? 'corrupted' : '' ?>">
                     <td>#<?= $prize->id ?></td>
                     <td>
                         <img src="<?= APP_URL ?>/images/prizes/<?= $prize->image ?? 'default.png' ?>" alt="<?= htmlspecialchars($prize->name) ?>" class="prize-image-preview">
                     </td>
                     <td><strong><?= htmlspecialchars($prize->name) ?></strong></td>
                     <td><span class="badge-prize-points"><?= $prize->points_value ?> pts</span></td>
+                    <td style="text-align:center;">
+                        <?php
+                        $status = $prize->_status ?? 'unsigned';
+                        ?>
+                        <?php if ($status === 'corrupted'): ?>
+                            <span class="integrity-badge-innovative invalid">
+                                <i class="bi bi-x-circle"></i> Corrupto
+                            </span>
+                        <?php elseif ($status === 'verified'): ?>
+                            <span class="integrity-badge-innovative valid">
+                                <i class="bi bi-check-circle"></i> Verificado
+                            </span>
+                        <?php else: ?>
+                            <span class="integrity-badge-innovative unsigned">
+                                <i class="bi bi-exclamation-triangle"></i> Sin firma
+                            </span>
+                        <?php endif; ?>
+                    </td>
                     <td style="text-align:center; white-space:nowrap;">
                         <a href="<?= APP_URL ?>/admin/prizes/edit/<?= $prize->id ?>" class="btn-admin-innovative btn-admin-innovative-sm btn-admin-innovative-warning">
                             <i class="bi bi-pencil"></i>

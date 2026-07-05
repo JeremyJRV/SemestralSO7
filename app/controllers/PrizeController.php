@@ -1,23 +1,69 @@
 <?php
+
 namespace App\Controllers;
 
 use clases\Controller;
 use clases\Session;
 use App\Models\Prize;
 use App\Models\Level;
+use clases\Database;
+use clases\DigitalSignature;
 
 class PrizeController extends Controller
 {
     public function index()
     {
-        $this->requireRole(['armador','admin']);
-        $prizes = Prize::all();
-        $this->render('prizes/index', ['prizes' => $prizes]);
+        $this->requireRole(['armador', 'admin']);
+
+        // Obtener datos directamente con PDO
+        $db = Database::getInstance()->getConnection();
+        $stmt = $db->query("SELECT id, name, image, points_value, signature FROM prizes");
+        $rows = $stmt->fetchAll();
+
+        $prizes = [];
+        $corruptedCount = 0;
+        $signedCount = 0;
+        $unsignedCount = 0;
+
+        foreach ($rows as $row) {
+            // Crear objeto Prize con los datos
+            $prize = new Prize($row);
+
+            // ASIGNAR EXPLÍCITAMENTE la propiedad signature
+            $prize->signature = $row['signature'] ?? null;
+
+            // Determinar estado de integridad
+            if (empty($row['signature'])) {
+                $prize->_status = 'unsigned';
+                $unsignedCount++;
+            } else {
+                $data = $row;
+                unset($data['signature']);
+                $isValid = DigitalSignature::verify($data, $row['signature']);
+
+                if ($isValid) {
+                    $prize->_status = 'verified';
+                    $signedCount++;
+                } else {
+                    $prize->_status = 'corrupted';
+                    $corruptedCount++;
+                }
+            }
+
+            $prizes[] = $prize;
+        }
+
+        $this->render('prizes/index', [
+            'prizes' => $prizes,
+            'corruptedCount' => $corruptedCount,
+            'signedCount' => $signedCount,
+            'unsignedCount' => $unsignedCount
+        ]);
     }
 
     public function create()
     {
-        $this->requireRole(['armador','admin']);
+        $this->requireRole(['armador', 'admin']);
         $levels = Level::all();
         $csrfToken = Session::csrfToken();
         $this->render('prizes/form', [
@@ -29,7 +75,7 @@ class PrizeController extends Controller
 
     public function store()
     {
-        $this->requireRole(['armador','admin']);
+        $this->requireRole(['armador', 'admin']);
         $this->csrfCheck();
 
         $prize = new Prize([
@@ -37,7 +83,8 @@ class PrizeController extends Controller
             'points_value' => $_POST['points_value'],
             'image' => $this->uploadImage('image')
         ]);
-        $prize->save();
+
+        $prize->saveWithSignature();
 
         if (!empty($_POST['levels'])) {
             $prize->syncLevels($_POST['levels']);
@@ -48,9 +95,20 @@ class PrizeController extends Controller
 
     public function edit($id)
     {
-        $this->requireRole(['armador','admin']);
-        $prize = Prize::find($id);
-        if (!$prize) $this->redirect('/admin/prizes');
+        $this->requireRole(['armador', 'admin']);
+
+        $db = Database::getInstance()->getConnection();
+        $stmt = $db->prepare("SELECT * FROM prizes WHERE id = :id");
+        $stmt->execute(['id' => $id]);
+        $row = $stmt->fetch();
+
+        if (!$row) {
+            $this->redirect('/admin/prizes');
+        }
+
+        $prize = new Prize($row);
+        $prize->signature = $row['signature'] ?? null;
+
         $levels = Level::all();
         $csrfToken = Session::csrfToken();
         $this->render('prizes/form', [
@@ -62,24 +120,45 @@ class PrizeController extends Controller
 
     public function update($id)
     {
-        $this->requireRole(['armador','admin']);
+        $this->requireRole(['armador', 'admin']);
         $this->csrfCheck();
-        $prize = Prize::find($id);
+
+        $db = Database::getInstance()->getConnection();
+        $stmt = $db->prepare("SELECT * FROM prizes WHERE id = :id");
+        $stmt->execute(['id' => $id]);
+        $row = $stmt->fetch();
+
+        if (!$row) {
+            $this->redirect('/admin/prizes');
+        }
+
+        $prize = new Prize($row);
+
+        // Actualizar datos
         $prize->name = $_POST['name'];
-        $prize->points_value = $_POST['points_value'];
+        $prize->points_value = (int)$_POST['points_value'];
+
         if (!empty($_FILES['image']['name'])) {
             $prize->image = $this->uploadImage('image');
         }
-        $prize->save();
+
+        // Guardar CON firma (esto regenera la firma)
+        $prize->saveWithSignature();
+
+        // Sincronizar niveles
         $prize->syncLevels($_POST['levels'] ?? []);
+
         $this->redirect('/admin/prizes');
     }
 
     public function delete($id)
     {
-        $this->requireRole(['armador','admin']);
-        $prize = Prize::find($id);
-        if ($prize) $prize->delete();
+        $this->requireRole(['armador', 'admin']);
+
+        $db = Database::getInstance()->getConnection();
+        $stmt = $db->prepare("DELETE FROM prizes WHERE id = :id");
+        $stmt->execute(['id' => $id]);
+
         $this->redirect('/admin/prizes');
     }
 

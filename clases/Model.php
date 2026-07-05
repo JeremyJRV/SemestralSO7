@@ -46,7 +46,11 @@ abstract class Model
         $table = static::$table;
         $stmt = $db->query("SELECT * FROM `$table`");
         $rows = $stmt->fetchAll();
-        return array_map(fn($row) => new static($row), $rows);
+        $results = [];
+        foreach ($rows as $row) {
+            $results[] = new static($row);
+        }
+        return $results;
     }
 
     public function save(): bool

@@ -14,6 +14,14 @@ class QuestionController extends Controller
         $this->requireRole(['armador','admin']);
         $themeLevels = ThemeLevel::all();
         $questions = $themeLevelId ? Question::byThemeLevel($themeLevelId) : Question::all();
+        
+        // Verificar integridad de cada pregunta
+        foreach ($questions as $key => $question) {
+            if (!$question->verifyIntegrity()) {
+                $questions[$key]->_corrupted = true;
+            }
+        }
+        
         $this->render('admin/questions', [
             'themeLevels' => $themeLevels,
             'questions' => $questions,
@@ -45,7 +53,9 @@ class QuestionController extends Controller
             'type' => $data['type'],
             'created_by' => Session::get('user_id')
         ]);
-        $question->save();
+        
+        // Guardar con firma digital
+        $question->saveWithSignature();
 
         if ($data['type'] === 'multiple') {
             foreach ($data['options'] as $index => $optionText) {
@@ -78,8 +88,13 @@ class QuestionController extends Controller
     public function edit($id)
     {
         $this->requireRole(['armador','admin']);
-        $question = Question::find($id);
-        if (!$question) $this->redirect('/admin/questions');
+        
+        // Verificar integridad de la pregunta
+        $question = Question::findWithVerification($id);
+        if (!$question) {
+            $this->redirect('/admin/questions');
+        }
+        
         $themeLevels = ThemeLevel::all();
         $csrfToken = Session::csrfToken();
         $this->render('questions/form', [
@@ -93,12 +108,18 @@ class QuestionController extends Controller
     {
         $this->requireRole(['armador','admin']);
         $this->csrfCheck();
-        $question = Question::find($id);
-        if (!$question) $this->redirect('/admin/questions');
+        
+        // Verificar integridad antes de actualizar
+        $question = Question::findWithVerification($id);
+        if (!$question) {
+            $this->redirect('/admin/questions');
+        }
 
         $question->theme_level_id = $_POST['theme_level_id'];
         $question->text = $_POST['text'];
-        $question->save();
+        
+        // Guardar con nueva firma
+        $question->saveWithSignature();
 
         Option::deleteByQuestion($id);
         $this->redirect('/admin/questions');
