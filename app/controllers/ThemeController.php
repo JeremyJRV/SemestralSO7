@@ -5,6 +5,8 @@ use clases\Controller;
 use clases\Session;
 use App\Models\Theme;
 use App\Models\UserThemeRating;
+use App\Models\Level;
+use App\Models\ThemeLevel;
 
 class ThemeController extends Controller
 {
@@ -46,6 +48,24 @@ class ThemeController extends Controller
                 'error' => 'Ya existe un tema con ese nombre.'
             ]);
             return;
+        }
+
+        // FUNCIONALIDAD FALTANTE AGREGADA: al crear un tema no se generaban
+        // sus niveles (Básico/Intermedio/Avanzado) en theme_levels. Sin esas
+        // filas, el tema nunca aparece en los selectores de "Tema y Nivel"
+        // (preguntas, selección de juego, etc.) porque todo el sistema arma
+        // sus consultas a partir de theme_levels, no de themes directamente.
+        // Ahora, al crear un tema, se crea automáticamente una fila en
+        // theme_levels por cada nivel existente (Básico, Intermedio,
+        // Avanzado), igual que ya estaban los temas PHP y JavaScript
+        // sembrados a mano en el script SQL original.
+        $levels = Level::all();
+        foreach ($levels as $level) {
+            $themeLevel = new ThemeLevel([
+                'theme_id' => $theme->id,
+                'level_id' => $level->id
+            ]);
+            $themeLevel->save();
         }
 
         $this->redirect('/admin/themes');

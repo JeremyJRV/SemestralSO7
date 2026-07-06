@@ -35,4 +35,45 @@ class UserLevelProgress extends Model
         $row = $stmt->fetch();
         return $row && $row['completed'] == 1;
     }
+
+    /**
+     * Nivel más alto que el usuario ha COMPLETADO, en cualquier tema
+     * (según order_index de la tabla levels), y el siguiente nivel al
+     * que podría avanzar. Usado en el Dashboard, que antes siempre
+     * mostraba "Sin nivel asignado" porque nadie calculaba este dato.
+     *
+     * @return array{current: ?string, next: ?string}
+     */
+    public static function currentAndNextLevelForUser(int $userId): array
+    {
+        $db = Database::getInstance()->getConnection();
+        $stmt = $db->prepare(
+            "SELECT l.name, l.order_index
+             FROM user_level_progress ulp
+             JOIN theme_levels tl ON tl.id = ulp.theme_level_id
+             JOIN levels l ON l.id = tl.level_id
+             WHERE ulp.user_id = :uid AND ulp.completed = 1
+             ORDER BY l.order_index DESC
+             LIMIT 1"
+        );
+        $stmt->execute(['uid' => $userId]);
+        $highest = $stmt->fetch();
+
+        if (!$highest) {
+            // Aún no completa ningún nivel: el "siguiente" es el primero (Básico)
+            $first = $db->query("SELECT name FROM levels ORDER BY order_index ASC LIMIT 1")->fetch();
+            return ['current' => null, 'next' => $first['name'] ?? null];
+        }
+
+        $nextStmt = $db->prepare(
+            "SELECT name FROM levels WHERE order_index > :idx ORDER BY order_index ASC LIMIT 1"
+        );
+        $nextStmt->execute(['idx' => $highest['order_index']]);
+        $next = $nextStmt->fetch();
+
+        return [
+            'current' => $highest['name'],
+            'next' => $next['name'] ?? null // null si ya completó el nivel más alto
+        ];
+    }
 }
