@@ -10,7 +10,20 @@ abstract class Controller
     protected function render(string $view, array $data = []): void
     {
         $userId = Session::get('user_id');
-        $data['user'] = $userId ? User::find($userId) : null;
+
+        // BUG CORREGIDO: antes esto se guardaba bajo la clave 'user',
+        // que es la MISMA clave que usan varios controladores (ej.
+        // UserController) para pasar el usuario que se está editando.
+        // Como esta línea se ejecutaba justo antes del extract($data),
+        // SIEMPRE sobreescribía ese 'user' con el usuario de la sesión
+        // actual, sin importar qué controlador lo llamara. Por eso,
+        // al editar cualquier usuario desde el panel de admin, el
+        // formulario terminaba mostrando (y actualizando) al admin
+        // logueado en vez del usuario seleccionado.
+        //
+        // Ahora se guarda bajo 'authUser', una clave separada que no
+        // choca con nada que los controladores quieran pasar a sus vistas.
+        $data['authUser'] = $userId ? User::find($userId) : null;
         $data['role'] = Session::get('user_role', 'guest');
         $data['csrfToken'] = Session::csrfToken();
 

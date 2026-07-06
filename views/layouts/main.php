@@ -398,7 +398,7 @@
                     <li class="nav-item">
                         <span class="user-badge-dash-innovative">
                             <i class="bi bi-person-fill"></i>
-                            <?= htmlspecialchars($user->username ?? 'Usuario') ?>
+                            <?= htmlspecialchars($authUser->username ?? 'Usuario') ?>
                         </span>
                     </li>
                     <li class="nav-item">

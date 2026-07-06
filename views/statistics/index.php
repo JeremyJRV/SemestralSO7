@@ -217,6 +217,58 @@
 </div>
 
 <div class="row g-3">
+
+    <hr class="divider-innovative">
+
+    <div class="row g-3">
+        <div class="col-12">
+            <div class="stat-card-stats-innovative">
+                <h5><i class="bi bi-stopwatch"></i>Tiempo promedio de respuesta</h5>
+
+
+                <p class="stat-name" style="margin-bottom: 1rem;">
+                   Promedio general del sistema: 
+                   <span class="stat-count">
+                    <?= number_format(($overallAvgTime ?? 0) / 1000, 2) ?> s
+                   </span>
+                </p>
+
+                <?php if (!empty($avgTimePerQuestion)): ?>
+                <table class="table" style="font-family: var(--font-display);">
+                    <thead>
+                        <tr>
+                            <th>Pregunta</th>
+                            <th>Tema</th>
+                            <th>Nivel</th>
+                            <th class="text-end">Tiempo promedio</th>
+                            <th class="text-end">Respuestas</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <?php foreach ($avgTimePerQuestion as $row): ?>
+                            <tr>
+                                <td><?= htmlspecialchars(mb_strimwidth($row['question_text'], 0, 60, '...')) ?></td>
+                                <td><?= htmlspecialchars($row['theme_name']) ?></td>
+                                <td><?= htmlspecialchars($row['level_name']) ?></td>
+                                <td class="text-end">
+                                    <?= number_format($row['avg_time_ms'] / 1000, 2) ?> s
+                                </td>
+                                <td class="text-end">
+                                    <span class="badge-count"><?= $row['total_answers'] ?></span>
+                                </td>
+                            </tr>
+                        <?php endforeach; ?>
+                    </tbody>
+                </table>
+                <?php else: ?>
+                    <p class="text-gray-innovative text-center" style="padding: 1rem 0; font-family: var(--font-display);">
+                     <i class="bi bi-emoji-smile me-1"></i> Aún no hay respuestas registradas.   
+                    </p>
+                <?php endif; ?>
+            </div>
+        </div>        
+    </div>        
+                           
     <!-- Temas más jugados -->
     <div class="col-md-6">
         <div class="stat-card-stats-innovative">

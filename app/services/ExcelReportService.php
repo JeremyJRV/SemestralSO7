@@ -53,7 +53,19 @@ class ExcelReportService
         }
 
         $filename = 'reporte_progreso_' . date('Ymd_His') . '.xlsx';
-        $path = __DIR__ . '/../public/storage/' . $filename;
+
+        // BUG CORREGIDO: este archivo vive en app/services/, así que hacen
+        // falta DOS niveles hacia arriba (../../) para llegar a la raíz del
+        // proyecto y de ahí a public/storage/. Antes solo subía un nivel
+        // (../public/storage/), lo que apuntaba a app/public/storage/,
+        // una carpeta que no existe, y hacía fallar el guardado del Excel.
+        $storageDir = __DIR__ . '/../../public/storage/';
+
+        if (!is_dir($storageDir)) {
+            mkdir($storageDir, 0775, true);
+        }
+
+        $path = $storageDir . $filename;
         $writer = new Xlsx($spreadsheet);
         $writer->save($path);
 

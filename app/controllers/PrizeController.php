@@ -161,7 +161,7 @@ class PrizeController extends Controller
         $stmt = $db->prepare("DELETE FROM prizes WHERE id = :id");
         $stmt->execute(['id' => $id]);
 
-        -$this->redirect('/admin/prizes');
+        $this->redirect('/admin/prizes');
     }
     private function uploadImage($field): string
     {
