@@ -134,9 +134,27 @@ class QuestionController extends Controller
     public function delete($id)
     {
         $this->requireRole(['armador','admin']);
-        Option::deleteByQuestion($id);
         $question = Question::find($id);
-        if ($question) $question->delete();
+
+        if ($question) {
+            // BUG CORREGIDO: borrar una pregunta ya respondida en algún
+            // juego viola la restricción de game_responses.question_id
+            // (y .selected_option_id sobre sus opciones), que NO tiene
+            // ON DELETE CASCADE a propósito (para no perder el historial
+            // de partidas). Antes esto tronaba con un error 500 sin
+            // control, y además se borraban las opciones ANTES de saber
+            // si la pregunta se podía borrar, dejando datos huérfanos.
+            try {
+                Option::deleteByQuestion($id);
+                $question->delete();
+            } catch (\PDOException $e) {
+                error_log('No se pudo eliminar pregunta ID ' . $id . ': ' . $e->getMessage());
+                $this->redirect('/admin/questions?error=' . urlencode(
+                    'No se puede eliminar esta pregunta porque ya fue respondida en alguna partida.'
+                ));
+                return;
+            }
+        }
         $this->redirect('/admin/questions');
     }
 

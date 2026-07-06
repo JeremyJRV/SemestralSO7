@@ -28,6 +28,8 @@ class GameController extends Controller
     public function start($themeLevelId)
     {
         $userId = Session::get('user_id');
+        if (!$userId) $this->redirect('/login'); // BUG CORREGIDO: faltaba esta validación
+
         $session = $this->gameService->createSession($userId, $themeLevelId);
         $this->redirect("/game/play/{$session->id}");
     }
@@ -52,6 +54,8 @@ class GameController extends Controller
     public function submitAnswers($sessionId)
     {
         $userId = Session::get('user_id');
+        if (!$userId) $this->redirect('/login'); // BUG CORREGIDO: faltaba esta validación
+
         $this->csrfCheck();
 
         // Evitar doble envío: si ya existen respuestas de este usuario para esta sesión, no procesar de nuevo

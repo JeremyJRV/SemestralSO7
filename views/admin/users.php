@@ -349,6 +349,12 @@
     </div>
 </div>
 
+<?php if (isset($_GET['error'])): ?>
+    <div class="alert alert-innovative alert-innovative-danger" style="border-radius:0; border:2px solid #dc2626; background:#fee2e2; color:#dc2626; padding:0.75rem 1rem; font-family: var(--font-display); margin-bottom: 1.5rem;">
+        <i class="bi bi-exclamation-triangle me-1"></i><?= htmlspecialchars($_GET['error']) ?>
+    </div>
+<?php endif; ?>
+
 <div class="admin-actions">
     <div class="admin-search">
         <input type="text" placeholder="Buscar usuario..." id="searchUser" onkeyup="filterTable()">

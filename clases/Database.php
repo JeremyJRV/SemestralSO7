@@ -11,11 +11,16 @@ class Database
 
     private function __construct()
     {
-        $host = $_ENV['DB_HOST'] ?? 'localhost';
-        $db   = $_ENV['DB_NAME'] ?? 'trivias_db';
-        $user = $_ENV['DB_USER'] ?? 'root';
-        $pass = $_ENV['DB_PASS'] ?? '';
-        $charset = 'utf8mb4';
+        // BUG CORREGIDO: antes se leía de $_ENV, pero nada en el proyecto
+        // carga un archivo .env a $_ENV (config/database.php define
+        // CONSTANTES, no variables de entorno). Esto hacía que la conexión
+        // siempre usara los valores por defecto de aquí abajo, ignorando
+        // en silencio lo que se configurara en config/database.php.
+        $host    = defined('DB_HOST') ? DB_HOST : 'localhost';
+        $db      = defined('DB_NAME') ? DB_NAME : 'trivias_db';
+        $user    = defined('DB_USER') ? DB_USER : 'root';
+        $pass    = defined('DB_PASS') ? DB_PASS : '';
+        $charset = defined('DB_CHARSET') ? DB_CHARSET : 'utf8mb4';
 
         $dsn = "mysql:host=$host;dbname=$db;charset=$charset";
         $options = [

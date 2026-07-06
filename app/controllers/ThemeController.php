@@ -32,7 +32,22 @@ class ThemeController extends Controller
             'description' => $data['description'] ?? '',
             'created_by' => Session::get('user_id')
         ]);
-        $theme->save();
+
+        // BUG CORREGIDO: themes.name tiene una restricción UNIQUE en la BD.
+        // Antes, crear un tema con un nombre ya existente (ej. "PHP" otra
+        // vez) tronaba con un error 500 sin control en vez de mostrar un
+        // mensaje amigable.
+        try {
+            $theme->save();
+        } catch (\PDOException $e) {
+            $csrfToken = Session::csrfToken();
+            $this->render('themes/form', [
+                'csrfToken' => $csrfToken,
+                'error' => 'Ya existe un tema con ese nombre.'
+            ]);
+            return;
+        }
+
         $this->redirect('/admin/themes');
     }
 
@@ -53,7 +68,19 @@ class ThemeController extends Controller
         if (!$theme) $this->redirect('/admin/themes');
         $theme->name = $_POST['name'];
         $theme->description = $_POST['description'] ?? '';
-        $theme->save();
+
+        try {
+            $theme->save();
+        } catch (\PDOException $e) {
+            $csrfToken = Session::csrfToken();
+            $this->render('themes/form', [
+                'csrfToken' => $csrfToken,
+                'theme' => $theme,
+                'error' => 'Ya existe un tema con ese nombre.'
+            ]);
+            return;
+        }
+
         $this->redirect('/admin/themes');
     }
 
@@ -61,7 +88,23 @@ class ThemeController extends Controller
     {
         $this->requireRole(['armador', 'admin']);
         $theme = Theme::find($id);
-        if ($theme) $theme->delete();
+
+        if ($theme) {
+            // BUG CORREGIDO: borrar un tema que ya tiene sesiones de juego
+            // jugadas (a través de sus theme_levels) viola la restricción
+            // de game_sessions.theme_level_id, que NO tiene ON DELETE
+            // CASCADE a propósito (para no perder el historial). Antes
+            // esto tronaba con un error 500 sin control.
+            try {
+                $theme->delete();
+            } catch (\PDOException $e) {
+                error_log('No se pudo eliminar tema ID ' . $id . ': ' . $e->getMessage());
+                $this->redirect('/admin/themes?error=' . urlencode(
+                    'No se puede eliminar este tema porque ya tiene partidas jugadas asociadas.'
+                ));
+                return;
+            }
+        }
         $this->redirect('/admin/themes');
     }
 
@@ -81,14 +124,5 @@ class ThemeController extends Controller
 
         UserThemeRating::updateOrCreate($userId, $themeId, $rating);
         $this->json(['success' => true]);
-    }
-
-    protected function requireRole(array|string $roles): void
-    {
-        $userRole = Session::get('user_role');
-        $roles = (array)$roles;
-        if (!in_array($userRole, $roles)) {
-            $this->redirect('/login');
-        }
     }
 }
