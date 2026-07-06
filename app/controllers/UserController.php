@@ -121,11 +121,9 @@ class UserController extends Controller
         $this->redirect('/admin/users');
     }
 
-    protected function csrfCheck(): void
-    {
-        if (!Session::validateCsrf($_POST['csrf_token'] ?? '')) {
-            $this->json(['error' => 'CSRF token inválido'], 403);
-            exit;
-        }
-    }
+    // BUG DE DRY CORREGIDO: este método era una copia casi idéntica de
+    // Controller::csrfCheck() (la clase base ya llama a json(), que
+    // internamente hace exit; el exit extra aquí era redundante). Se
+    // eliminó el override: ahora UserController usa el de la clase base,
+    // igual que todos los demás controladores.
 }

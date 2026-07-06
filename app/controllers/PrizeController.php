@@ -8,6 +8,7 @@ use App\Models\Prize;
 use App\Models\Level;
 use clases\Database;
 use clases\DigitalSignature;
+use clases\FileUploader;
 
 class PrizeController extends Controller
 {
@@ -89,6 +90,7 @@ class PrizeController extends Controller
 
         $this->redirect('/admin/prizes');
     }
+
     public function edit($id)
     {
         $this->requireRole(['armador', 'admin']);
@@ -163,33 +165,20 @@ class PrizeController extends Controller
 
         $this->redirect('/admin/prizes');
     }
+
+    // BUG DE DRY CORREGIDO: este método duplicaba exactamente la misma
+    // lógica de validación (tipo, tamaño, extensión) que
+    // ProfileController::uploadAvatar(). Ambos ahora delegan en
+    // clases\FileUploader::upload().
     private function uploadImage($field): string
     {
-        if (empty($_FILES[$field]['name']) || $_FILES[$field]['error'] !== UPLOAD_ERR_OK) {
+        if (empty($_FILES[$field]['name'])) {
             return 'default.png';
         }
-
-        $allowedTypes = ['image/jpeg', 'image/png', 'image/gif', 'image/webp'];
-        $tmpPath = $_FILES[$field]['tmp_name'];
-        $mimeType = mime_content_type($tmpPath);
-
-        if (!in_array($mimeType, $allowedTypes)) {
-            return 'default.png';
-        }
-
-        $maxSize = 2 * 1024 * 1024;
-        if ($_FILES[$field]['size'] > $maxSize) {
-            return 'default.png';
-        }
-
-        $ext = pathinfo($_FILES[$field]['name'], PATHINFO_EXTENSION);
-        $filename = uniqid('prize_') . '.' . $ext;
-        $destination = __DIR__ . '/../../public/images/prizes/' . $filename;
-
-        if (move_uploaded_file($tmpPath, $destination)) {
-            return $filename;
-        }
-
-        return 'default.png';
+        return FileUploader::upload(
+            $_FILES[$field],
+            __DIR__ . '/../../public/images/prizes/',
+            'prize_'
+        );
     }
 }
