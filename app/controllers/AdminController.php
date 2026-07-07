@@ -6,16 +6,16 @@ use clases\Session;
 use App\Models\User;    
 
 
-// AdminController: panel de administración general (agrupa accesos)
+// AdminController: descarga del reporte de progreso en Excel
 class AdminController extends Controller
 {
-    public function index()
-    {
-        $this->requireRole('admin');
-        $this->render('admin/dashboard');
-    }
+    // Nota: existía aquí un método index() que renderizaba 'admin/dashboard',
+    // pero esa vista nunca se creó y routes/web.php nunca definió una ruta
+    // hacia este método (era código muerto e inalcanzable). Se eliminó para
+    // no dejar confusión; el panel de administración real se organiza por
+    // secciones (Usuarios, Temas, Preguntas, Premios, Reporte), cada una con
+    // su propio controlador y ruta.
 
-    // Añadir esto en AdminController.php
     public function downloadReport()
     {
     $this->requireRole('admin');

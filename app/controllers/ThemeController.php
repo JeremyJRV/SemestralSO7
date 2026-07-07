@@ -135,6 +135,14 @@ class ThemeController extends Controller
             $this->json(['error' => 'No autenticado'], 401);
             return;
         }
+
+        // BUG CORREGIDO: esta ruta es POST y modifica datos, pero nunca
+        // validaba el token CSRF (a diferencia de todos los demás formularios
+        // POST del sistema). Esto la dejaba abierta a ataques CSRF: un sitio
+        // malicioso podía hacer que el navegador de un usuario logueado
+        // enviara "me gusta" en su nombre sin que él lo supiera.
+        $this->csrfCheck();
+
         $themeId = $_POST['theme_id'] ?? null;
         $rating = $_POST['rating'] ?? null;
         if (!$themeId || !in_array($rating, ['boring','interesting','great'])) {

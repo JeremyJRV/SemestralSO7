@@ -358,24 +358,23 @@ $progress = $totalQuestions > 0 ? round((($currentQuestion + 1) / $totalQuestion
     document.querySelectorAll('.option-item-innovative input[type="radio"]').forEach(input => {
         const questionId = input.name.match(/\[(.*?)\]/)[1];
         const timeField = document.querySelector(`input[name="times[${questionId}]"]`);
-        let start = Date.now();
+        const start = Date.now();
 
+        // BUG CORREGIDO: antes había un segundo listener en 'click' que
+        // recalculaba el tiempo Y ADEMÁS reiniciaba "start" a Date.now().
+        // Como 'click' se dispara justo antes que 'change' en un radio
+        // button, el 'change' terminaba calculando el tiempo contra un
+        // "start" que se acababa de resetear un instante antes, dando
+        // ~0 ms siempre. Por eso todos los tiempos de respuesta guardados
+        // en game_responses.response_time_ms eran 0 y el promedio en
+        // Estadísticas salía en blanco/0. Ahora "start" se fija una sola
+        // vez (cuando se muestra la pregunta) y nunca se reinicia: el
+        // tiempo de respuesta es correctamente el tiempo desde que se
+        // mostró la pregunta hasta que se eligió (o cambió) la respuesta.
         input.addEventListener('change', () => {
             if (timeField) {
                 timeField.value = Date.now() - start;
             }
-        });
-
-        // Reset timer when any radio in same question is clicked
-        input.closest('.question-card-innovative').querySelectorAll('input[type="radio"]').forEach(radio => {
-            radio.addEventListener('click', () => {
-                const currentStart = Date.now();
-                const currentTimeField = document.querySelector(`input[name="times[${questionId}]"]`);
-                if (currentTimeField) {
-                    currentTimeField.value = currentStart - start;
-                }
-                start = currentStart;
-            });
         });
     });
 </script>

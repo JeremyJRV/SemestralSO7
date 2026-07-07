@@ -394,7 +394,7 @@ document.querySelectorAll('.rate-btn').forEach(btn => {
             headers: {
                 'Content-Type': 'application/x-www-form-urlencoded',
             },
-            body: 'theme_id=' + themeId + '&rating=' + rating
+            body: 'theme_id=' + themeId + '&rating=' + rating + '&csrf_token=<?= urlencode($csrfToken) ?>'
         })
         .then(res => res.json())
         .then(data => {
