@@ -218,12 +218,59 @@
 
 <div class="row g-3">
 
+    <!-- Mis estadísticas (del usuario logueado, no del sistema) -->
+    <div class="col-12">
+        <div class="stat-card-stats-innovative">
+            <h5><i class="bi bi-person-check"></i>Mis estadísticas</h5>
+
+            <div class="stat-list-item-innovative">
+                <span class="stat-name">Partidas jugadas</span>
+                <span class="stat-count"><?= (int)($myGamesPlayed ?? 0) ?></span>
+            </div>
+            <div class="stat-list-item-innovative">
+                <span class="stat-name">Porcentaje de aciertos</span>
+                <span class="stat-count"><?= number_format($myAccuracy ?? 0, 1) ?>%</span>
+            </div>
+
+            <?php if (!empty($myAvgTimePerQuestion)): ?>
+                <table class="table" style="font-family: var(--font-display); margin-top: 1rem;">
+                    <thead>
+                        <tr>
+                            <th>Pregunta</th>
+                            <th>Tema</th>
+                            <th>Nivel</th>
+                            <th class="text-end">Mi tiempo promedio</th>
+                            <th class="text-end">Veces respondida</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <?php foreach ($myAvgTimePerQuestion as $row): ?>
+                            <tr>
+                                <td><?= htmlspecialchars(mb_strimwidth($row['question_text'], 0, 60, '...')) ?></td>
+                                <td><?= htmlspecialchars($row['theme_name']) ?></td>
+                                <td><?= htmlspecialchars($row['level_name']) ?></td>
+                                <td class="text-end"><?= number_format($row['avg_time_ms'] / 1000, 2) ?> s</td>
+                                <td class="text-end">
+                                    <span class="badge-count"><?= $row['total_answers'] ?></span>
+                                </td>
+                            </tr>
+                        <?php endforeach; ?>
+                    </tbody>
+                </table>
+            <?php else: ?>
+                <p class="text-gray-innovative text-center" style="padding: 1rem 0; font-family: var(--font-display);">
+                    <i class="bi bi-emoji-smile me-1"></i> Aún no has respondido ninguna pregunta.
+                </p>
+            <?php endif; ?>
+        </div>
+    </div>
+
     <hr class="divider-innovative">
 
     <div class="row g-3">
         <div class="col-12">
             <div class="stat-card-stats-innovative">
-                <h5><i class="bi bi-stopwatch"></i>Tiempo promedio de respuesta</h5>
+                <h5><i class="bi bi-stopwatch"></i>Tiempo promedio de respuesta (todos los usuarios)</h5>
 
 
                 <p class="stat-name" style="margin-bottom: 1rem;">
