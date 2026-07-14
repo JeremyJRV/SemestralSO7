@@ -401,6 +401,7 @@
                                 <li><a class="dropdown-item" href="<?= APP_URL ?>/admin/themes"><i class="bi bi-collection"></i>Temas</a></li>
                                 <li><a class="dropdown-item" href="<?= APP_URL ?>/admin/questions"><i class="bi bi-question-circle"></i>Preguntas</a></li>
                                 <li><a class="dropdown-item" href="<?= APP_URL ?>/admin/prizes"><i class="bi bi-trophy"></i>Premios</a></li>
+                                <li><a class="dropdown-item" href="<?= APP_URL ?>/admin/qr"><i class="bi bi-qr-code"></i>Códigos QR</a></li>
                                 <?php if (($role ?? 'guest') === 'admin'): ?>
                                     <!-- BUG CORREGIDO: /admin/report (AdminController::downloadReport)
                                          existía y funcionaba, pero no había ningún enlace en la interfaz

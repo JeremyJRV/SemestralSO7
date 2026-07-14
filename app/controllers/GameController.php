@@ -146,4 +146,31 @@ class GameController extends Controller
             'sessionId' => $session->id
         ]);
     }
+
+    /**
+     * Acceso directo a un set de preguntas (tema-nivel) mediante un
+     * código QR (rúbrica punto 10). Si el jugador no ha iniciado sesión,
+     * se guarda la intención en sesión y se le pide iniciar sesión (o
+     * registrarse); AuthController lo redirige automáticamente aquí
+     * después de autenticarse, para no perder el destino del QR.
+     */
+    public function accessByQr($themeLevelId)
+    {
+        $themeLevel = \App\Models\ThemeLevel::findWithNames((int)$themeLevelId);
+        if (!$themeLevel) {
+            $this->redirect('/game?error=' . urlencode(
+                'El código QR no es válido o el set de preguntas ya no existe.'
+            ));
+            return;
+        }
+
+        $userId = Session::get('user_id');
+        if (!$userId) {
+            Session::set('qr_redirect_theme_level', (int)$themeLevelId);
+            $this->redirect('/login?qr=1');
+            return;
+        }
+
+        $this->redirect('/game/start/' . (int)$themeLevelId);
+    }
 }

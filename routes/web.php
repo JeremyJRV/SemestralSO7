@@ -21,6 +21,12 @@ $router->get('/game/room/create', 'GameController', 'createRoom');
 $router->post('/game/room/store', 'GameController', 'storeRoom');
 $router->get('/game/room/{roomCode}', 'GameController', 'joinRoom');
 
+// Acceso directo por código QR
+$router->get('/qr/{themeLevelId}', 'GameController', 'accessByQr');
+
+// Panel de administración: generar/ver los códigos QR de cada tema-nivel
+$router->get('/admin/qr', 'QrController', 'index');
+
 // Perfil
 $router->get('/profile', 'ProfileController', 'show');
 $router->post('/profile/avatar', 'ProfileController', 'updateAvatar');

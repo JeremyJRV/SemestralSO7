@@ -169,6 +169,12 @@
                 <?php endforeach; ?>
             <?php endforeach; ?>
         <?php endif; ?>
+        <?php if (($_GET['qr'] ?? null) == '1'): ?>
+            <div class="alert alert-innovative alert-innovative-warning">
+                <i class="bi bi-qr-code me-1"></i>Inicia sesión (o regístrate) para
+                acceder al set de preguntas del código QR que escaneaste.
+            </div>
+        <?php endif; ?>
         <form method="POST" action="<?= APP_URL ?>/login">
             <input type="hidden" name="csrf_token" value="<?= $csrfToken ?>">
             <div class="mb-3">

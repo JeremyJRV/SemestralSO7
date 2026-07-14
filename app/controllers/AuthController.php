@@ -49,6 +49,17 @@ class AuthController extends Controller
             LoginAttempt::log($user->id, $clientIp, true);
             Session::set('user_id', $user->id);
             Session::set('user_role', $user->role);
+
+            // NUEVO (acceso por QR): si venía de escanear un código QR
+            // antes de loguearse, lo mandamos directo a jugar ese set de
+            // preguntas en vez de al dashboard.
+            $pendingQr = Session::get('qr_redirect_theme_level');
+            if ($pendingQr) {
+                Session::delete('qr_redirect_theme_level');
+                $this->redirect('/game/start/' . (int)$pendingQr);
+                return;
+            }
+
             $this->redirect('/dashboard');
         } else {
             // Falló
@@ -134,6 +145,15 @@ class AuthController extends Controller
 
         Session::set('user_id', $user->id);
         Session::set('user_role', $user->role);
+
+        // NUEVO (acceso por QR): mismo comportamiento que en login().
+        $pendingQr = Session::get('qr_redirect_theme_level');
+        if ($pendingQr) {
+            Session::delete('qr_redirect_theme_level');
+            $this->redirect('/game/start/' . (int)$pendingQr);
+            return;
+        }
+
         $this->redirect('/dashboard');
     }
 
