@@ -1,7 +1,9 @@
 <?php
 namespace clases;
 
-class Validator
+use clases\interfaces\ValidatorInterface;
+
+class Validator implements ValidatorInterface
 {
     public static function sanitizeString(string $input): string
     {
