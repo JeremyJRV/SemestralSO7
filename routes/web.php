@@ -27,6 +27,10 @@ $router->post('/profile/avatar', 'ProfileController', 'updateAvatar');
 
 // Avatares
 $router->get('/avatars', 'AvatarController', 'index');
+$router->post('/avatars/store', 'AvatarController', 'store');
+$router->post('/avatars/update/{id}', 'AvatarController', 'update');
+$router->get('/avatars/activate/{id}', 'AvatarController', 'activate');
+$router->get('/avatars/deactivate/{id}', 'AvatarController', 'deactivate');
 
 // Estadísticas
 $router->get('/statistics', 'StatisticsController', 'index');
