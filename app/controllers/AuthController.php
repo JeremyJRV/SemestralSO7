@@ -86,6 +86,7 @@ class AuthController extends Controller
         $data = [
             'email' => Validator::sanitizeString($_POST['email']),
             'username' => Validator::sanitizeString($_POST['username']),
+            'cedula' => Validator::sanitizeString($_POST['cedula'] ?? ''), // NUEVO
             'password' => $_POST['password'],
             'password_confirmation' => $_POST['password_confirmation'] ?? ''
         ];
@@ -94,6 +95,7 @@ class AuthController extends Controller
         $errors = $this->validate($data, [
             'email' => 'required|email',
             'username' => 'required',
+            'cedula' => 'required|cedula', // NUEVO: pedido por la rúbrica actualizada
             'password' => 'required'
         ]);
         if ($data['password'] !== $data['password_confirmation']) {
@@ -115,9 +117,16 @@ class AuthController extends Controller
             return;
         }
 
+        // NUEVO: verificar cédula única
+        if ($this->cedulaExists($data['cedula'])) {
+            $this->render('auth/register', ['error' => 'Esa cédula ya está registrada.', 'data' => $data]);
+            return;
+        }
+
         $user = new User([
             'email' => $data['email'],
             'username' => $data['username'],
+            'cedula' => $data['cedula'],
             'password' => password_hash($data['password'], PASSWORD_DEFAULT),
             'role' => 'player'
         ]);
@@ -126,5 +135,13 @@ class AuthController extends Controller
         Session::set('user_id', $user->id);
         Session::set('user_role', $user->role);
         $this->redirect('/dashboard');
+    }
+
+    private function cedulaExists(string $cedula): bool
+    {
+        $db = \clases\Database::getInstance()->getConnection();
+        $stmt = $db->prepare("SELECT id FROM users WHERE cedula = :cedula LIMIT 1");
+        $stmt->execute(['cedula' => $cedula]);
+        return (bool) $stmt->fetch();
     }
 }

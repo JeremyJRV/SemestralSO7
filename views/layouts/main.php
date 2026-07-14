@@ -380,6 +380,16 @@
                             <i class="bi bi-bar-chart-line"></i>Stats
                         </a>
                     </li>
+                    <li class="nav-item">
+                        <a class="nav-link" href="<?= APP_URL ?>/avatars">
+                            <i class="bi bi-person-badge"></i>Avatares
+                        </a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link" href="<?= APP_URL ?>/ranking">
+                            <i class="bi bi-trophy"></i>Ranking
+                        </a>
+                    </li>
                     <?php if (in_array($role ?? 'guest', ['armador', 'admin'])): ?>
                         <li class="nav-item dropdown">
                             <a class="nav-link dropdown-toggle" href="#" role="button" data-bs-toggle="dropdown">

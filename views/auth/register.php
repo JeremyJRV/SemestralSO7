@@ -182,6 +182,14 @@
                 </div>
             </div>
             <div class="mb-3">
+                <label class="form-label fw-semibold small text-gray-innovative text-uppercase" style="font-family: var(--font-mono); letter-spacing: 0.5px;">Cédula</label>
+                <div class="input-group">
+                    <span class="input-group-text"><i class="bi bi-card-text"></i></span>
+                    <input type="text" name="cedula" class="form-control" required value="<?= htmlspecialchars($data['cedula'] ?? '') ?>" placeholder="Ej. 8-123-4567">
+                </div>
+                <div class="text-hint-innovative">No podrás cambiarla después de registrarte.</div>
+            </div>
+            <div class="mb-3">
                 <label class="form-label fw-semibold small text-gray-innovative text-uppercase" style="font-family: var(--font-mono); letter-spacing: 0.5px;">Email</label>
                 <div class="input-group">
                     <span class="input-group-text"><i class="bi bi-envelope"></i></span>

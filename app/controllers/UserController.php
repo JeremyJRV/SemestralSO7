@@ -29,14 +29,19 @@ class UserController extends Controller
         $this->csrfCheck();
 
         $data = $_POST;
-        $errors = $this->validate($data, ['email' => 'required|email', 'username' => 'required']);
+        $errors = $this->validate($data, [
+            'email' => 'required|email',
+            'username' => 'required',
+            'cedula' => 'required|cedula' // NUEVO: pedido por la rúbrica actualizada
+        ]);
 
-        // BUG CORREGIDO: antes no se validaba si el email ya existía antes
-        // de insertar. users.email tiene una restricción UNIQUE en la BD,
-        // así que un correo duplicado tronaba con un error 500 sin
-        // controlar en vez de mostrar un mensaje de validación amigable.
         if (empty($errors) && User::findByEmail($data['email'])) {
             $errors['email'][] = 'Ya existe un usuario con ese email.';
+        }
+
+        // NUEVO: la cédula también debe ser única
+        if (empty($errors) && $this->cedulaExists($data['cedula'])) {
+            $errors['cedula'][] = 'Ya existe un usuario con esa cédula.';
         }
 
         if (!empty($errors)) {
@@ -47,6 +52,7 @@ class UserController extends Controller
         $user = new User([
             'email' => $data['email'],
             'username' => $data['username'],
+            'cedula' => $data['cedula'],
             'password' => password_hash($data['password'] ?? 'default123', PASSWORD_DEFAULT),
             'role' => $data['role'] ?? 'player'
         ]);
@@ -72,8 +78,6 @@ class UserController extends Controller
 
         $data = $_POST;
 
-        // BUG CORREGIDO: validar que el nuevo email no pertenezca a OTRO
-        // usuario (si no cambió el email, o es el mismo usuario, se permite).
         $existing = User::findByEmail($data['email']);
         if ($existing && (int)$existing->id !== (int)$id) {
             $csrfToken = Session::csrfToken();
@@ -91,6 +95,14 @@ class UserController extends Controller
         if (!empty($data['password'])) {
             $user->password = password_hash($data['password'], PASSWORD_DEFAULT);
         }
+
+        // BUG/REGLA DE NEGOCIO NUEVA: la rúbrica exige que la cédula NO se
+        // pueda editar una vez creado el usuario. Aunque el formulario de
+        // edición no debería enviar 'cedula' (campo bloqueado en la
+        // vista), NUNCA se asigna aquí a propósito, incluso si alguien
+        // manipulara el formulario a mano e intentara mandarla: se ignora
+        // por completo y se conserva siempre el valor original guardado.
+
         $user->save();
         $this->redirect('/admin/users');
     }
@@ -101,13 +113,6 @@ class UserController extends Controller
         $user = User::find($id);
 
         if ($user && $user->id != Session::get('user_id')) {
-            // BUG CORREGIDO: borrar un usuario que ya jugó partidas, creó
-            // temas/preguntas, o alojó sesiones de juego, viola varias
-            // restricciones de llave foránea que NO tienen ON DELETE CASCADE
-            // a propósito (para no perder el historial). Antes esto tronaba
-            // con un error 500 sin control; ahora se captura y se muestra
-            // un mensaje amigable, cumpliendo con el manejo de excepciones
-            // que pide el proyecto.
             try {
                 $user->delete();
             } catch (\PDOException $e) {
@@ -121,9 +126,11 @@ class UserController extends Controller
         $this->redirect('/admin/users');
     }
 
-    // BUG DE DRY CORREGIDO: este método era una copia casi idéntica de
-    // Controller::csrfCheck() (la clase base ya llama a json(), que
-    // internamente hace exit; el exit extra aquí era redundante). Se
-    // eliminó el override: ahora UserController usa el de la clase base,
-    // igual que todos los demás controladores.
+    private function cedulaExists(string $cedula): bool
+    {
+        $db = \clases\Database::getInstance()->getConnection();
+        $stmt = $db->prepare("SELECT id FROM users WHERE cedula = :cedula LIMIT 1");
+        $stmt->execute(['cedula' => $cedula]);
+        return (bool) $stmt->fetch();
+    }
 }

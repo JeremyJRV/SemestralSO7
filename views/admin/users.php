@@ -374,6 +374,7 @@
             <tr>
                 <th>ID</th>
                 <th>Usuario</th>
+                <th>Cédula</th>
                 <th>Email</th>
                 <th>Rol</th>
                 <th>Puntos</th>
@@ -385,6 +386,7 @@
                 <tr>
                     <td>#<?= $u->id ?></td>
                     <td><strong><?= htmlspecialchars($u->username) ?></strong></td>
+                    <td><?= htmlspecialchars($u->cedula ?? '—') ?></td>
                     <td><?= htmlspecialchars($u->email) ?></td>
                     <td>
                         <span class="badge-role-admin badge-role-admin-<?= $u->role ?>">

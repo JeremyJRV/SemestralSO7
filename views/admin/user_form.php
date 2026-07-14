@@ -197,6 +197,17 @@
         </div>
 
         <div class="mb-3">
+            <label class="form-label"><i class="bi bi-card-text me-1"></i>Cédula</label>
+            <?php if (isset($user) && $user): ?>
+                <input type="text" class="form-control" value="<?= htmlspecialchars($user->cedula ?? '') ?>" readonly disabled style="background:#f1f5f9; cursor:not-allowed;">
+                <div class="text-hint"><i class="bi bi-lock-fill"></i> La cédula no se puede modificar después de creado el usuario.</div>
+            <?php else: ?>
+                <input type="text" name="cedula" class="form-control" required value="<?= htmlspecialchars(is_array($user ?? null) ? ($user['cedula'] ?? '') : '') ?>" placeholder="Ej. 8-123-4567">
+                <div class="text-hint">Formato: dígitos y guiones, 5 a 20 caracteres. No podrás cambiarla después.</div>
+            <?php endif; ?>
+        </div>
+
+        <div class="mb-3">
             <label class="form-label"><i class="bi bi-envelope me-1"></i>Email</label>
             <input type="email" name="email" class="form-control" required value="<?= htmlspecialchars($user->email ?? '') ?>" placeholder="usuario@email.com">
         </div>

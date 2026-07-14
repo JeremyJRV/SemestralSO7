@@ -16,21 +16,20 @@ class DashboardController extends Controller
         if (!$userId) $this->redirect('/login');
         $user = User::find($userId);
 
-        // BUG CORREGIDO: antes solo se pasaba $user a la vista. El
-        // dashboard también necesita currentLevel, nextLevel, gamesPlayed,
-        // accuracy y recentActivity, que nunca se calculaban -por eso
-        // siempre mostraba "Sin nivel asignado", 0 partidas jugadas, 0%
-        // de aciertos y "Aún no tienes actividad" aunque el usuario ya
-        // hubiera jugado.
-        $levels = UserLevelProgress::currentAndNextLevelForUser($userId);
+        // BUG CORREGIDO: antes se usaba currentAndNextLevelForUser(), que
+        // mezclaba todos los temas y solo mostraba UN nivel "actual" (el
+        // más alto entre todos). Ahora se calcula por tema, para que se
+        // vea el avance real en cada uno (ej. PHP: Intermedio,
+        // JavaScript: Básico, Laravel: Sin iniciar).
+        $levelsByTheme = UserLevelProgress::currentAndNextLevelByTheme($userId);
+
         $gamesPlayed = GameResponse::sessionsPlayedByUser($userId);
         $accuracy = GameResponse::accuracyForUser($userId);
         $recentActivity = GameResponse::recentActivityForUser($userId, 5);
 
         $this->render('dashboard/index', [
             'user' => $user,
-            'currentLevel' => $levels['current'],
-            'nextLevel' => $levels['next'],
+            'levelsByTheme' => $levelsByTheme,
             'gamesPlayed' => $gamesPlayed,
             'accuracy' => $accuracy,
             'recentActivity' => $recentActivity

@@ -301,19 +301,16 @@
     }
 </style>
 
+<?php $user = $user ?? null; ?>
+
 <!-- ====== HEADER ====== -->
 <div class="dash-header-innovative">
     <div class="d-flex flex-wrap align-items-center justify-content-between gap-2">
         <div>
             <div class="greeting">
-                <i class="bi bi-controller"></i>¡Bienvenido, <?= htmlspecialchars($user->username) ?>!
+                <i class="bi bi-controller"></i>¡Bienvenido, <?= htmlspecialchars($user->username ?? 'Jugador') ?>!
             </div>
             <div class="subtitle">
-                <i class="bi bi-arrow-right-short"></i> Nivel actual:
-                <span><?= $currentLevel ?? 'Sin nivel asignado' ?></span>
-                <?php if (!empty($currentLevel)): ?>
-                    <span class="badge-level"><?= $currentLevel ?></span>
-                <?php endif; ?>
             </div>
         </div>
         <div>
@@ -336,22 +333,39 @@
             <div class="stat-sub"><i class="bi bi-arrow-up-short"></i> Sigue así!</div>
         </div>
     </div>
-    <div class="col-md-4">
-        <div class="stat-card-innovative">
+    <div class="col-12">
+        <div class="stat-card-innovative" style="text-align:left;">
             <span class="corner-accent" style="background: #7c3aed;"></span>
             <div class="stat-icon-innovative" style="color: #7c3aed; background: #f5f3ff;"><i class="bi bi-bar-chart-steps"></i></div>
-            <div class="stat-label">Nivel Actual</div>
-            <div class="stat-value purple"><?= $currentLevel ?? '—' ?></div>
-            <div class="stat-sub"><i class="bi bi-flag"></i> Siguiente: <?= $nextLevel ?? 'Completa más' ?></div>
-        </div>
-    </div>
-    <div class="col-md-4">
-        <div class="stat-card-innovative">
-            <span class="corner-accent" style="background: #22c55e;"></span>
-            <div class="stat-icon-innovative" style="color: #22c55e; background: #f0fdf4;"><i class="bi bi-joystick"></i></div>
-            <div class="stat-label">Partidas Jugadas</div>
-            <div class="stat-value green"><?= $gamesPlayed ?? 0 ?></div>
-            <div class="stat-sub"><i class="bi bi-check-circle-fill" style="color: #22c55e;"></i> <?= $accuracy ?? 0 ?>% aciertos</div>
+            <div class="stat-label" style="margin-bottom: 0.8rem;">Nivel Actual por Tema</div>
+
+            <?php if (!empty($levelsByTheme)): ?>
+                <div class="d-flex flex-column gap-2">
+                    <?php foreach ($levelsByTheme as $lvl): ?>
+                        <div class="d-flex justify-content-between align-items-center" style="border-bottom: 2px solid var(--border-light); padding-bottom: 0.5rem;">
+                            <span style="font-family: var(--font-display); font-weight: 700; color: var(--text-dark);">
+                                <?= htmlspecialchars($lvl['theme_name']) ?>
+                            </span>
+                            <span style="font-family: var(--font-mono); font-size: 0.8rem;">
+                                <?php if ($lvl['current']): ?>
+                                    <span class="dash-level-badge-innovative">
+                                        <i class="bi bi-check-circle"></i><?= htmlspecialchars($lvl['current']) ?>
+                                    </span>
+                                <?php else: ?>
+                                    <span class="text-gray-innovative">Sin iniciar</span>
+                                <?php endif; ?>
+                                <?php if ($lvl['next']): ?>
+                                    <span class="text-gray-innovative"> → <?= htmlspecialchars($lvl['next']) ?></span>
+                                <?php else: ?>
+                                    <span class="text-gray-innovative"> · ¡Nivel máximo!</span>
+                                <?php endif; ?>
+                            </span>
+                        </div>
+                    <?php endforeach; ?>
+                </div>
+            <?php else: ?>
+                <p class="text-gray-innovative mb-0">Aún no hay temas disponibles.</p>
+            <?php endif; ?>
         </div>
     </div>
 </div>

@@ -25,8 +25,14 @@ $router->get('/game/room/{roomCode}', 'GameController', 'joinRoom');
 $router->get('/profile', 'ProfileController', 'show');
 $router->post('/profile/avatar', 'ProfileController', 'updateAvatar');
 
+// Avatares
+$router->get('/avatars', 'AvatarController', 'index');
+
 // Estadísticas
 $router->get('/statistics', 'StatisticsController', 'index');
+
+// Ranking
+$router->get('/ranking', 'RankingController', 'index');
 
 // Admin Usuarios
 $router->get('/admin/users', 'UserController', 'index');
