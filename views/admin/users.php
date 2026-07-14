@@ -410,6 +410,22 @@
     </table>
 </div>
 
+<script>
+    document.addEventListener('DOMContentLoaded', function () {
+        $('#userTable').DataTable({
+            language: {
+                url: 'https://cdn.datatables.net/plug-ins/1.13.8/i18n/es-ES.json'
+            },
+            columnDefs: [
+                { orderable: false, searchable: false, targets: -1 } // columna "Acciones"
+            ],
+            order: [[0, 'desc']],
+            pageLength: 10,
+            lengthMenu: [5, 10, 25, 50]
+        });
+    });
+</script>
+
 <hr class="divider-innovative">
 
 <div class="text-center" style="font-family: var(--font-mono); font-size: 0.7rem; color: var(--text-light);">

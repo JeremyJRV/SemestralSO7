@@ -367,7 +367,7 @@
 <?php endif; ?>
 
 <div class="table-responsive">
-    <table class="table-admin-innovative">
+    <table class="table-admin-innovative" id="questionsTable">
         <thead>
             <tr>
                 <th style="width:50px;">ID</th>
@@ -408,6 +408,22 @@
         </tbody>
     </table>
 </div>
+
+<script>
+    document.addEventListener('DOMContentLoaded', function () {
+        $('#questionsTable').DataTable({
+            language: {
+                url: 'https://cdn.datatables.net/plug-ins/1.13.8/i18n/es-ES.json'
+            },
+            columnDefs: [
+                { orderable: false, searchable: false, targets: -1 } // columna "Acciones"
+            ],
+            order: [[0, 'desc']],
+            pageLength: 10,
+            lengthMenu: [5, 10, 25, 50]
+        });
+    });
+</script>
 
 <hr class="divider-innovative">
 
