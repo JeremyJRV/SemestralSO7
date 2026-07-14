@@ -1,4 +1,90 @@
 <style>
+    /* ---------- Contenedor del ícono animado ---------- */
+    .result-icon-animated {
+        font-size: 5rem;
+        display: inline-block;
+        margin-bottom: 0.5rem;
+    }
+
+    /* Tier 1: PERFECTO (100%) - trofeo dorado con rebote + brillo */
+    .result-icon-animated.tier-perfect {
+        color: #d4af37;
+        animation: bounce-in 0.6s ease, glow-pulse 1.5s ease-in-out infinite 0.6s;
+    }
+
+    /* Tier 2: EXCELENTE (80-99%) - estrella con pulso */
+    .result-icon-animated.tier-excellent {
+        color: var(--primary);
+        animation: bounce-in 0.6s ease, pulse-scale 1.8s ease-in-out infinite 0.6s;
+    }
+
+    /* Tier 3: BIEN (50-79%) - pulgar arriba con meneo */
+    .result-icon-animated.tier-good {
+        color: #22c55e;
+        animation: bounce-in 0.6s ease, wiggle 2s ease-in-out infinite 0.6s;
+    }
+
+    /* Tier 4: SIGUE PRACTICANDO (1-49%) - diana con vibración suave */
+    .result-icon-animated.tier-practice {
+        color: #f59e0b;
+        animation: bounce-in 0.6s ease, gentle-shake 2.5s ease-in-out infinite 0.6s;
+    }
+
+    /* Tier 5: NO TE RINDAS (0%) - carita amigable con respiración */
+    .result-icon-animated.tier-retry {
+        color: #64748b;
+        animation: bounce-in 0.6s ease, breathe 2.2s ease-in-out infinite 0.6s;
+    }
+
+    /* ---------- Confeti para el tier perfecto ---------- */
+    .confetti-piece {
+        position: absolute;
+        width: 8px;
+        height: 8px;
+        top: -10px;
+        opacity: 0.9;
+        animation: confetti-fall 1.8s ease-in forwards;
+    }
+
+    /* ---------- Keyframes ---------- */
+    @keyframes bounce-in {
+        0%   { transform: scale(0) rotate(-15deg); opacity: 0; }
+        60%  { transform: scale(1.2) rotate(5deg); opacity: 1; }
+        100% { transform: scale(1) rotate(0deg); }
+    }
+
+    @keyframes glow-pulse {
+        0%, 100% { filter: drop-shadow(0 0 4px rgba(212,175,55,0.5)); transform: scale(1); }
+        50%      { filter: drop-shadow(0 0 16px rgba(212,175,55,0.9)); transform: scale(1.08); }
+    }
+
+    @keyframes pulse-scale {
+        0%, 100% { transform: scale(1); }
+        50%      { transform: scale(1.12); }
+    }
+
+    @keyframes wiggle {
+        0%, 100% { transform: rotate(0deg); }
+        25%      { transform: rotate(-8deg); }
+        75%      { transform: rotate(8deg); }
+    }
+
+    @keyframes gentle-shake {
+        0%, 100% { transform: translateX(0); }
+        25%      { transform: translateX(-4px) rotate(-3deg); }
+        75%      { transform: translateX(4px) rotate(3deg); }
+    }
+
+    @keyframes breathe {
+        0%, 100% { transform: scale(1); opacity: 0.85; }
+        50%      { transform: scale(1.06); opacity: 1; }
+    }
+
+    @keyframes confetti-fall {
+        0%   { transform: translateY(0) rotate(0deg); opacity: 1; }
+        100% { transform: translateY(120px) rotate(360deg); opacity: 0; }
+    }
+
     .results-header-innovative {
         padding: 2rem;
         background: var(--bg-card);
@@ -232,17 +318,63 @@
 </style>
 
 <?php
-$passed = ($result['percentage'] ?? 0) >= 80;
-$icon = $passed ? '🎉' : '💪';
-$title = $passed ? '¡Excelente!' : '¡Sigue practicando!';
-$subtitle = $passed ? 'Has superado el nivel con éxito' : 'No te rindas, inténtalo de nuevo';
-$iconClass = $passed ? 'pass' : 'fail';
+// NUEVO (rúbrica punto 16): antes solo había 2 estados (aprobado/no
+// aprobado según el 80%). Ahora se muestra una imagen animada distinta
+// según el puntaje EXACTO obtenido (5/5 no es lo mismo que 4/5), con
+// 5 niveles de resultado.
+$percentage = $result['percentage'] ?? 0;
+$correct = $result['correct'] ?? 0;
+$total = $result['total'] ?? 0;
+
+if ($total > 0 && $correct === $total) {
+    $tier = 'perfect';
+    $bsIcon = 'bi-trophy-fill';
+    $title = '¡PERFECTO! ' . $correct . '/' . $total;
+    $subtitle = '¡Respondiste absolutamente todo correctamente!';
+} elseif ($percentage >= 80) {
+    $tier = 'excellent';
+    $bsIcon = 'bi-star-fill';
+    $title = '¡Excelente!';
+    $subtitle = 'Has superado el nivel con éxito';
+} elseif ($percentage >= 50) {
+    $tier = 'good';
+    $bsIcon = 'bi-hand-thumbs-up-fill';
+    $title = '¡Bien hecho!';
+    $subtitle = 'Vas por buen camino, sigue así';
+} elseif ($percentage > 0) {
+    $tier = 'practice';
+    $bsIcon = 'bi-bullseye';
+    $title = 'Sigue practicando';
+    $subtitle = 'Cada intento te acerca más a dominarlo';
+} else {
+    $tier = 'retry';
+    $bsIcon = 'bi-emoji-smile-fill';
+    $title = 'No te rindas';
+    $subtitle = 'Vuelve a intentarlo, tú puedes lograrlo';
+}
+
+$passed = $percentage >= 80; // se conserva para el color verde/rojo de "Precisión"
 ?>
 
-<div class="results-header-innovative">
-    <span class="result-icon <?= $iconClass ?>"><?= $icon ?></span>
-    <h2><?= $title ?></h2>
-    <p class="result-subtitle"><?= $subtitle ?></p>
+<div class="results-header-innovative" style="position:relative; overflow:hidden;">
+    <?php if ($tier === 'perfect'): ?>
+        <!-- Confeti (solo en el resultado perfecto) -->
+        <?php
+        $confettiColors = ['#fbbf24', '#f472b6', '#60a5fa', '#34d399', '#a78bfa'];
+        for ($i = 0; $i < 14; $i++):
+            $left = rand(5, 95);
+            $delay = rand(0, 8) / 10;
+            $color = $confettiColors[array_rand($confettiColors)];
+        ?>
+            <span class="confetti-piece" style="left:<?= $left ?>%; background:<?= $color ?>; animation-delay:<?= $delay ?>s;"></span>
+        <?php endfor; ?>
+    <?php endif; ?>
+
+    <span class="result-icon-animated tier-<?= $tier ?>">
+        <i class="bi <?= $bsIcon ?>"></i>
+    </span>
+    <h2><?= htmlspecialchars($title) ?></h2>
+    <p class="result-subtitle"><?= htmlspecialchars($subtitle) ?></p>
 </div>
 
 <div class="result-stats-innovative">
