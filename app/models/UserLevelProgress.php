@@ -24,6 +24,53 @@ class UserLevelProgress extends Model
         return $stmt->fetchAll();
     }
 
+    /**
+     * ¿Puede el usuario jugar este theme_level? El primer nivel de cada
+     * tema (menor order_index) siempre está desbloqueado; cualquier otro
+     * nivel requiere haber completado el nivel anterior DEL MISMO TEMA.
+     *
+     * BUG CORREGIDO: la rúbrica exige explícitamente que un jugador no
+     * pueda pasar a un nivel avanzado sin haber pasado el básico, pero
+     * esto nunca se validaba en ningún controlador ni servicio — solo
+     * existía isCompleted() sin que nadie la llamara. Cualquiera podía
+     * entrar directo a "/game/start/{id}" (o por QR) de un nivel avanzado
+     * sin haber jugado nada antes.
+     */
+    public static function isLevelUnlocked(int $userId, int $themeLevelId): bool
+    {
+        $db = Database::getInstance()->getConnection();
+
+        $stmt = $db->prepare(
+            "SELECT tl.theme_id, l.order_index
+             FROM theme_levels tl
+             JOIN levels l ON l.id = tl.level_id
+             WHERE tl.id = :tlid"
+        );
+        $stmt->execute(['tlid' => $themeLevelId]);
+        $current = $stmt->fetch();
+        if (!$current) return false; // theme_level inexistente
+
+        // Nivel anterior (order_index más alto que sea MENOR al actual) del mismo tema
+        $prevStmt = $db->prepare(
+            "SELECT tl.id
+             FROM theme_levels tl
+             JOIN levels l ON l.id = tl.level_id
+             WHERE tl.theme_id = :theme_id AND l.order_index < :order_index
+             ORDER BY l.order_index DESC
+             LIMIT 1"
+        );
+        $prevStmt->execute([
+            'theme_id' => $current['theme_id'],
+            'order_index' => $current['order_index']
+        ]);
+        $previous = $prevStmt->fetch();
+
+        // No hay nivel anterior en este tema -> es el primero, siempre desbloqueado
+        if (!$previous) return true;
+
+        return self::isCompleted($userId, (int)$previous['id']);
+    }
+
     // Verificar si un nivel está completado
     public static function isCompleted(int $userId, int $themeLevelId): bool
     {

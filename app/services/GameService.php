@@ -55,6 +55,17 @@ class GameService
 // Crear una sesión de juego
     public function createSession(int $userId, int $themeLevelId): GameSession
     {
+        // BUG CORREGIDO: no existía ninguna verificación de progresión
+        // aquí (ver nota en UserLevelProgress::isLevelUnlocked). Esta es
+        // la puerta de entrada única para iniciar cualquier partida
+        // (selección normal, QR, o escribiendo la URL a mano), así que
+        // aplicar el candado aquí lo cubre en todos los casos.
+        if (!UserLevelProgress::isLevelUnlocked($userId, $themeLevelId)) {
+            throw new \App\Exceptions\UnauthorizedException(
+                'Debes completar el nivel anterior de este tema antes de acceder a este.'
+            );
+        }
+
         $session = new GameSession([
             'room_code' => substr(md5(uniqid()), 0, 6), // generamos un código igual, aunque sea single player
             'theme_level_id' => $themeLevelId,

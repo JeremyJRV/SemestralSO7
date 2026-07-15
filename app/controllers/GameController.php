@@ -30,7 +30,12 @@ class GameController extends Controller
         $userId = Session::get('user_id');
         if (!$userId) $this->redirect('/login'); // BUG CORREGIDO: faltaba esta validación
 
-        $session = $this->gameService->createSession($userId, $themeLevelId);
+        try {
+            $session = $this->gameService->createSession($userId, $themeLevelId);
+        } catch (\App\Exceptions\UnauthorizedException $e) {
+            $this->redirect('/game?error=' . urlencode($e->getMessage()));
+            return;
+        }
         $this->redirect("/game/play/{$session->id}");
     }
 

@@ -87,6 +87,13 @@ class AvatarController extends Controller
     {
         $userId = Session::get('user_id');
         if (!$userId) $this->redirect('/login');
+        // BUG CORREGIDO: esta acción modifica datos pero estaba expuesta
+        // como link GET sin validar CSRF (a diferencia de store()/update()
+        // en este mismo controlador). Un <img src="...avatars/deactivate/5">
+        // en un sitio externo podía activar/desactivar el avatar de
+        // cualquier usuario logueado sin que lo supiera. Ahora exige POST
+        // + token CSRF, igual que el resto de acciones que modifican datos.
+        $this->csrfCheck();
         Avatar::activate((int)$id, $userId);
         $this->redirect('/avatars');
     }
@@ -96,6 +103,7 @@ class AvatarController extends Controller
     {
         $userId = Session::get('user_id');
         if (!$userId) $this->redirect('/login');
+        $this->csrfCheck();
         Avatar::deactivate((int)$id, $userId);
         $this->redirect('/avatars');
     }

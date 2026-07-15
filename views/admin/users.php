@@ -398,7 +398,7 @@
                         <a href="<?= APP_URL ?>/admin/users/edit/<?= $u->id ?>" class="btn-admin-innovative btn-admin-innovative-sm btn-admin-innovative-warning">
                             <i class="bi bi-pencil"></i>
                         </a>
-                        <?php if ($u->id != ($user->id ?? 0)): ?>
+                        <?php if ($u->id != ($authUser->id ?? 0)): ?>
                             <a href="<?= APP_URL ?>/admin/users/delete/<?= $u->id ?>" class="btn-admin-innovative btn-admin-innovative-sm btn-admin-innovative-danger" onclick="return confirm('¿Eliminar este usuario?')">
                                 <i class="bi bi-trash"></i>
                             </a>

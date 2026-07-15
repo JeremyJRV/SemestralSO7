@@ -74,9 +74,12 @@
 
                 <div class="avatar-card-actions">
                     <?php if (!$avatar->activo): ?>
-                        <a href="<?= APP_URL ?>/avatars/activate/<?= $avatar->id ?>" class="btn-admin-innovative btn-admin-innovative-sm">
-                            <i class="bi bi-check-circle me-1"></i>Usar este
-                        </a>
+                        <form method="POST" action="<?= APP_URL ?>/avatars/activate/<?= $avatar->id ?>">
+                            <input type="hidden" name="csrf_token" value="<?= $csrfToken ?>">
+                            <button type="submit" class="btn-admin-innovative btn-admin-innovative-sm">
+                                <i class="bi bi-check-circle me-1"></i>Usar este
+                            </button>
+                        </form>
                     <?php endif; ?>
 
                     <!-- Modificar imagen (mismo registro, CRUD "actualizar") -->
@@ -89,11 +92,13 @@
                     </form>
 
                     <?php if ($avatar->activo): ?>
-                        <a href="<?= APP_URL ?>/avatars/deactivate/<?= $avatar->id ?>"
-                           class="btn-admin-innovative btn-admin-innovative-sm btn-admin-innovative-danger"
-                           onclick="return confirm('¿Desactivar este avatar? No se borrará, solo dejará de usarse.')">
-                            <i class="bi bi-slash-circle me-1"></i>Desactivar
-                        </a>
+                        <form method="POST" action="<?= APP_URL ?>/avatars/deactivate/<?= $avatar->id ?>"
+                              onsubmit="return confirm('¿Desactivar este avatar? No se borrará, solo dejará de usarse.')">
+                            <input type="hidden" name="csrf_token" value="<?= $csrfToken ?>">
+                            <button type="submit" class="btn-admin-innovative btn-admin-innovative-sm btn-admin-innovative-danger">
+                                <i class="bi bi-slash-circle me-1"></i>Desactivar
+                            </button>
+                        </form>
                     <?php endif; ?>
                 </div>
             </div>

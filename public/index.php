@@ -8,6 +8,9 @@ require_once __DIR__ . '/../config/app.php';
 require_once __DIR__ . '/../config/database.php';
 require_once __DIR__ . '/../config/constants.php';
 
+// Autoloader de Composer (necesario para librerías de terceros como PhpSpreadsheet)
+require_once __DIR__ . '/../vendor/autoload.php';
+
 // Autocarga de clases (PSR-4 simple sin Composer)
 spl_autoload_register(function ($class) {
     // Prefijos en minúscula/tal cual se usan en el código con "use"

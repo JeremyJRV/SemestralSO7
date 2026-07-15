@@ -55,7 +55,11 @@ class AuthController extends Controller
             // preguntas en vez de al dashboard.
             $pendingQr = Session::get('qr_redirect_theme_level');
             if ($pendingQr) {
-                Session::delete('qr_redirect_theme_level');
+                // BUG CORREGIDO: se llamaba a Session::delete(), que no
+                // existe en la clase (el método real se llama remove()).
+                // Esto rompía el login con un error fatal justo después
+                // de escanear un QR sin sesión iniciada.
+                Session::remove('qr_redirect_theme_level');
                 $this->redirect('/game/start/' . (int)$pendingQr);
                 return;
             }
@@ -149,7 +153,9 @@ class AuthController extends Controller
         // NUEVO (acceso por QR): mismo comportamiento que en login().
         $pendingQr = Session::get('qr_redirect_theme_level');
         if ($pendingQr) {
-            Session::delete('qr_redirect_theme_level');
+            // BUG CORREGIDO: mismo error que en login() (Session::delete()
+            // no existe, es Session::remove()).
+            Session::remove('qr_redirect_theme_level');
             $this->redirect('/game/start/' . (int)$pendingQr);
             return;
         }
