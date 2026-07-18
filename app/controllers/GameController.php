@@ -28,7 +28,7 @@ class GameController extends Controller
     public function start($themeLevelId)
     {
         $userId = Session::get('user_id');
-        if (!$userId) $this->redirect('/login'); // BUG CORREGIDO: faltaba esta validación
+        if (!$userId) $this->redirect('/login');
 
         try {
             $session = $this->gameService->createSession($userId, $themeLevelId);
@@ -59,11 +59,10 @@ class GameController extends Controller
     public function submitAnswers($sessionId)
     {
         $userId = Session::get('user_id');
-        if (!$userId) $this->redirect('/login'); // BUG CORREGIDO: faltaba esta validación
+        if (!$userId) $this->redirect('/login');
 
         $this->csrfCheck();
 
-        // Evitar doble envío: si ya existen respuestas de este usuario para esta sesión, no procesar de nuevo
         $existing = GameResponse::whereMultiple([
             'session_id' => $sessionId,
             'user_id' => $userId
@@ -76,7 +75,10 @@ class GameController extends Controller
         $answers = $_POST['answers'] ?? [];
         $responseTimes = $_POST['times'] ?? [];
 
-        $this->gameService->processAnswers($sessionId, $userId, $answers, $responseTimes);
+        $result = $this->gameService->processAnswers($sessionId, $userId, $answers, $responseTimes);
+
+        Session::set('last_prizes_awarded_' . $sessionId, $result['prizes_awarded'] ?? []);
+
         $this->redirect("/game/results/{$sessionId}");
     }
 
@@ -107,7 +109,15 @@ class GameController extends Controller
             'points_earned' => $pointsEarned
         ];
 
-        $this->render('game/results', ['session' => $session, 'responses' => $responses, 'result' => $result]);
+        $newPrizes = Session::get('last_prizes_awarded_' . $sessionId) ?? [];
+        Session::remove('last_prizes_awarded_' . $sessionId);
+
+        $this->render('game/results', [
+            'session' => $session,
+            'responses' => $responses,
+            'result' => $result,
+            'newPrizes' => $newPrizes
+        ]);
     }
 
     public function createRoom()
@@ -152,13 +162,6 @@ class GameController extends Controller
         ]);
     }
 
-    /**
-     * Acceso directo a un set de preguntas (tema-nivel) mediante un
-     * código QR (rúbrica punto 10). Si el jugador no ha iniciado sesión,
-     * se guarda la intención en sesión y se le pide iniciar sesión (o
-     * registrarse); AuthController lo redirige automáticamente aquí
-     * después de autenticarse, para no perder el destino del QR.
-     */
     public function accessByQr($themeLevelId)
     {
         $themeLevel = \App\Models\ThemeLevel::findWithNames((int)$themeLevelId);

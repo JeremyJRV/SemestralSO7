@@ -8,7 +8,6 @@ use App\Models\User;
 
 class UserController extends Controller
 {
-    // Listado (solo admin)
     public function index()
     {
         $this->requireRole('admin');
@@ -32,14 +31,13 @@ class UserController extends Controller
         $errors = $this->validate($data, [
             'email' => 'required|email',
             'username' => 'required',
-            'cedula' => 'required|cedula' // NUEVO: pedido por la rúbrica actualizada
+            'cedula' => 'required|cedula'
         ]);
 
         if (empty($errors) && User::findByEmail($data['email'])) {
             $errors['email'][] = 'Ya existe un usuario con ese email.';
         }
 
-        // NUEVO: la cédula también debe ser única
         if (empty($errors) && $this->cedulaExists($data['cedula'])) {
             $errors['cedula'][] = 'Ya existe un usuario con esa cédula.';
         }
@@ -96,13 +94,6 @@ class UserController extends Controller
             $user->password = password_hash($data['password'], PASSWORD_DEFAULT);
         }
 
-        // BUG/REGLA DE NEGOCIO NUEVA: la rúbrica exige que la cédula NO se
-        // pueda editar una vez creado el usuario. Aunque el formulario de
-        // edición no debería enviar 'cedula' (campo bloqueado en la
-        // vista), NUNCA se asigna aquí a propósito, incluso si alguien
-        // manipulara el formulario a mano e intentara mandarla: se ignora
-        // por completo y se conserva siempre el valor original guardado.
-
         $user->save();
         $this->redirect('/admin/users');
     }
@@ -110,6 +101,7 @@ class UserController extends Controller
     public function delete($id)
     {
         $this->requireRole('admin');
+        $this->csrfCheck();
         $user = User::find($id);
 
         if ($user && $user->id != Session::get('user_id')) {

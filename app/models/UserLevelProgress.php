@@ -7,7 +7,7 @@ use clases\Database;
 class UserLevelProgress extends Model
 {
     protected static string $table = 'user_level_progress';
-    protected static string $primaryKey = 'user_id'; // compuesto, pero usaremos user_id + theme_level_id
+    protected static string $primaryKey = 'user_id';
 
     public static function byUser(int $userId): array
     {
@@ -24,18 +24,6 @@ class UserLevelProgress extends Model
         return $stmt->fetchAll();
     }
 
-    /**
-     * ¿Puede el usuario jugar este theme_level? El primer nivel de cada
-     * tema (menor order_index) siempre está desbloqueado; cualquier otro
-     * nivel requiere haber completado el nivel anterior DEL MISMO TEMA.
-     *
-     * BUG CORREGIDO: la rúbrica exige explícitamente que un jugador no
-     * pueda pasar a un nivel avanzado sin haber pasado el básico, pero
-     * esto nunca se validaba en ningún controlador ni servicio — solo
-     * existía isCompleted() sin que nadie la llamara. Cualquiera podía
-     * entrar directo a "/game/start/{id}" (o por QR) de un nivel avanzado
-     * sin haber jugado nada antes.
-     */
     public static function isLevelUnlocked(int $userId, int $themeLevelId): bool
     {
         $db = Database::getInstance()->getConnection();
@@ -48,9 +36,8 @@ class UserLevelProgress extends Model
         );
         $stmt->execute(['tlid' => $themeLevelId]);
         $current = $stmt->fetch();
-        if (!$current) return false; // theme_level inexistente
+        if (!$current) return false;
 
-        // Nivel anterior (order_index más alto que sea MENOR al actual) del mismo tema
         $prevStmt = $db->prepare(
             "SELECT tl.id
              FROM theme_levels tl
@@ -65,13 +52,11 @@ class UserLevelProgress extends Model
         ]);
         $previous = $prevStmt->fetch();
 
-        // No hay nivel anterior en este tema -> es el primero, siempre desbloqueado
         if (!$previous) return true;
 
         return self::isCompleted($userId, (int)$previous['id']);
     }
 
-    // Verificar si un nivel está completado
     public static function isCompleted(int $userId, int $themeLevelId): bool
     {
         $db = Database::getInstance()->getConnection();
@@ -83,14 +68,6 @@ class UserLevelProgress extends Model
         return $row && $row['completed'] == 1;
     }
 
-    /**
-     * Nivel más alto que el usuario ha COMPLETADO, en cualquier tema
-     * (según order_index de la tabla levels), y el siguiente nivel al
-     * que podría avanzar. Usado en el Dashboard, que antes siempre
-     * mostraba "Sin nivel asignado" porque nadie calculaba este dato.
-     *
-     * @return array{current: ?string, next: ?string}
-     */
     public static function currentAndNextLevelForUser(int $userId): array
     {
         $db = Database::getInstance()->getConnection();
@@ -107,7 +84,6 @@ class UserLevelProgress extends Model
         $highest = $stmt->fetch();
 
         if (!$highest) {
-            // Aún no completa ningún nivel: el "siguiente" es el primero (Básico)
             $first = $db->query("SELECT name FROM levels ORDER BY order_index ASC LIMIT 1")->fetch();
             return ['current' => null, 'next' => $first['name'] ?? null];
         }
@@ -120,25 +96,10 @@ class UserLevelProgress extends Model
 
         return [
             'current' => $highest['name'],
-            'next' => $next['name'] ?? null // null si ya completó el nivel más alto
+            'next' => $next['name'] ?? null
         ];
     }
 
-    /**
-     * Nivel actual (el más alto COMPLETADO) y siguiente nivel, calculado
-     * POR CADA TEMA por separado. Reemplaza a currentAndNextLevelForUser()
-     * en el Dashboard.
-     *
-     * BUG CORREGIDO: el Dashboard usaba currentAndNextLevelForUser(), que
-     * calcula un único "nivel actual" tomando el máximo entre TODOS los
-     * temas mezclados. Así, si el jugador llegó a Avanzado en un tema
-     * pero apenas empieza otro, el Dashboard mostraba "Avanzado" como si
-     * fuera su nivel en todo, ocultando que en los demás temas va más
-     * atrás (o no ha empezado). Ahora se calcula un nivel actual/siguiente
-     * independiente para CADA tema.
-     *
-     * @return array<int, array{theme_name:string, current:?string, next:?string}>
-     */
     public static function currentAndNextLevelByTheme(int $userId): array
     {
         $db = Database::getInstance()->getConnection();
@@ -146,7 +107,6 @@ class UserLevelProgress extends Model
         $themes = $db->query("SELECT id, name FROM themes ORDER BY name ASC")->fetchAll();
         $allLevels = $db->query("SELECT id, name, order_index FROM levels ORDER BY order_index ASC")->fetchAll();
 
-        // Nivel más alto (order_index) que el usuario ya completó, por tema
         $stmt = $db->prepare(
             "SELECT tl.theme_id, MAX(l.order_index) AS max_order
              FROM user_level_progress ulp
@@ -176,8 +136,8 @@ class UserLevelProgress extends Model
             }
             $result[] = [
                 'theme_name' => $theme['name'],
-                'current' => $current, // null = todavía no completa ningún nivel de este tema
-                'next' => $next        // null = ya completó el nivel más alto de este tema
+                'current' => $current,
+                'next' => $next
             ];
         }
         return $result;
@@ -185,8 +145,10 @@ class UserLevelProgress extends Model
 
     /**
      * Ranking de jugadores para un tema-nivel específico, ordenado por
-     * porcentaje de acierto (score_percentage) y, en empate, por quién lo
-     * completó primero. Usado en la nueva pantalla de Ranking.
+     * porcentaje de acierto y, en empate, por quién lo completó primero.
+     * Solo incluye usuarios con role='player' -- admins y armadores no
+     * son jugadores y no deben aparecer en ningún ranking, igual que ya
+     * pasa en el ranking global (User::topByPoints).
      */
     public static function rankingByThemeLevel(int $themeLevelId, int $limit = 20): array
     {
@@ -196,7 +158,7 @@ class UserLevelProgress extends Model
                     ulp.score_percentage, ulp.completed, ulp.attempted_at
              FROM user_level_progress ulp
              JOIN users u ON u.id = ulp.user_id
-             WHERE ulp.theme_level_id = :tlid
+             WHERE ulp.theme_level_id = :tlid AND u.role = 'player'
              ORDER BY ulp.score_percentage DESC, ulp.attempted_at ASC
              LIMIT :lim"
         );
@@ -207,8 +169,8 @@ class UserLevelProgress extends Model
     }
 
     /**
-     * Posición (1-based) de un usuario en el ranking de un tema-nivel
-     * específico (aunque no esté dentro del $limit del listado principal).
+     * Posición (1-based) de un usuario en el ranking de un tema-nivel,
+     * excluyendo también a no-jugadores del conteo.
      */
     public static function rankPositionForUser(int $userId, int $themeLevelId): ?int
     {
@@ -220,12 +182,14 @@ class UserLevelProgress extends Model
         );
         $ownScore->execute(['uid' => $userId, 'tlid' => $themeLevelId]);
         $own = $ownScore->fetch();
-        if (!$own) return null; // el usuario no ha jugado este tema-nivel
+        if (!$own) return null;
 
         $stmt = $db->prepare(
             "SELECT COUNT(*) + 1 AS position
-             FROM user_level_progress
-             WHERE theme_level_id = :tlid AND score_percentage > :score"
+             FROM user_level_progress ulp
+             JOIN users u ON u.id = ulp.user_id
+             WHERE ulp.theme_level_id = :tlid AND u.role = 'player'
+             AND ulp.score_percentage > :score"
         );
         $stmt->execute(['tlid' => $themeLevelId, 'score' => $own['score_percentage']]);
         $row = $stmt->fetch();

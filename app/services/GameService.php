@@ -15,7 +15,6 @@ use App\Models\Prize;
 
 class GameService
 {
-    // Obtener niveles disponibles para un usuario (progresión)
     public function getAvailableLevelsForUser(int $userId): array
     {
         $db = Database::getInstance()->getConnection();
@@ -52,14 +51,8 @@ class GameService
         return $available;
     }
 
-// Crear una sesión de juego
     public function createSession(int $userId, int $themeLevelId): GameSession
     {
-        // BUG CORREGIDO: no existía ninguna verificación de progresión
-        // aquí (ver nota en UserLevelProgress::isLevelUnlocked). Esta es
-        // la puerta de entrada única para iniciar cualquier partida
-        // (selección normal, QR, o escribiendo la URL a mano), así que
-        // aplicar el candado aquí lo cubre en todos los casos.
         if (!UserLevelProgress::isLevelUnlocked($userId, $themeLevelId)) {
             throw new \App\Exceptions\UnauthorizedException(
                 'Debes completar el nivel anterior de este tema antes de acceder a este.'
@@ -67,7 +60,7 @@ class GameService
         }
 
         $session = new GameSession([
-            'room_code' => substr(md5(uniqid()), 0, 6), // generamos un código igual, aunque sea single player
+            'room_code' => substr(md5(uniqid()), 0, 6),
             'theme_level_id' => $themeLevelId,
             'host_user_id' => $userId
         ]);
@@ -75,7 +68,6 @@ class GameService
         return $session;
     }
 
-    // Obtener preguntas para una sesión (por ejemplo, 5 aleatorias)
     public function getQuestionsForSession(int $themeLevelId, int $limit = 5): array
     {
         $db = Database::getInstance()->getConnection();
@@ -98,7 +90,6 @@ class GameService
         return $questions;
     }
 
-    // Procesar respuestas y calcular resultados
     public function processAnswers(int $sessionId, int $userId, array $answers, array $responseTimes): array
     {
         $db = Database::getInstance()->getConnection();
@@ -170,8 +161,9 @@ class GameService
             'comp2' => $percentage >= 80 ? 1 : 0
         ]);
 
+        $prizesAwarded = [];
         if ($percentage >= 80) {
-            $this->awardPrizes($userId, $themeLevelId);
+            $prizesAwarded = $this->awardPrizes($userId, $themeLevelId);
         }
 
         $user = User::find($userId);
@@ -185,22 +177,33 @@ class GameService
             'total' => $totalQuestions,
             'percentage' => $percentage,
             'avg_time_ms' => $avgTime,
-            'points_earned' => $pointsEarned
+            'points_earned' => $pointsEarned,
+            'prizes_awarded' => $prizesAwarded
         ];
     }
 
-    private function awardPrizes(int $userId, int $themeLevelId): void
+    /**
+     * Otorga los premios configurados para el nivel recién completado
+     * (si el jugador no los tenía ya) y devuelve la lista de premios
+     * que se otorgaron EN ESTE MOMENTO, para poder mostrarlos en la
+     * pantalla de resultados justo después de terminar la partida.
+     *
+     * @return Prize[] premios nuevos otorgados en esta llamada
+     */
+    private function awardPrizes(int $userId, int $themeLevelId): array
     {
         $db = Database::getInstance()->getConnection();
         $stmt = $db->prepare("SELECT level_id FROM theme_levels WHERE id = :tlid");
         $stmt->execute(['tlid' => $themeLevelId]);
         $levelId = $stmt->fetchColumn();
 
-        if (!$levelId) return;
+        if (!$levelId) return [];
 
         $stmt = $db->prepare("SELECT prize_id FROM prize_levels WHERE level_id = :lid");
         $stmt->execute(['lid' => $levelId]);
         $prizeIds = $stmt->fetchAll(\PDO::FETCH_COLUMN);
+
+        $newlyAwarded = [];
 
         foreach ($prizeIds as $prizeId) {
             $exists = $db->prepare("SELECT 1 FROM user_prizes WHERE user_id = :uid AND prize_id = :pid");
@@ -213,8 +216,11 @@ class GameService
                 if ($prize) {
                     $user = User::find($userId);
                     $user->addPoints($prize->points_value);
+                    $newlyAwarded[] = $prize;
                 }
             }
         }
+
+        return $newlyAwarded;
     }
 }

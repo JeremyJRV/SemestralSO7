@@ -55,43 +55,21 @@
         letter-spacing: 0.3px;
     }
 
-    .upload-avatar-form-innovative {
-        display: flex;
-        gap: 0.5rem;
-        justify-content: center;
-        flex-wrap: wrap;
-        margin-top: 1rem;
-    }
-
-    .upload-avatar-form-innovative .form-control {
-        max-width: 200px;
-        border: 2px solid var(--border-dark);
-        border-radius: 0;
-        font-size: 0.85rem;
-        font-family: var(--font-display);
-    }
-
-    .upload-avatar-form-innovative .form-control:focus {
-        outline: none;
-        border-color: var(--primary);
-        box-shadow: 4px 4px 0px var(--border-dark);
-    }
-
-    .btn-upload-innovative {
+    .btn-change-avatar-innovative {
         background: var(--primary);
         color: white !important;
         font-family: var(--font-display);
         font-weight: 700;
-        padding: 0.4rem 1.5rem;
+        padding: 0.5rem 1.6rem;
         border: 2px solid var(--border-dark);
         transition: all 0.15s ease;
         font-size: 0.85rem;
         box-shadow: 4px 4px 0px var(--border-dark);
-        border-radius: 0;
+        margin-top: 1rem;
+        cursor: pointer;
     }
 
-    .btn-upload-innovative:hover {
-        background: var(--primary);
+    .btn-change-avatar-innovative:hover {
         transform: translate(-3px, -3px);
         box-shadow: 6px 6px 0px var(--border-dark);
         color: white !important;
@@ -241,6 +219,72 @@
         text-align: right;
     }
 
+    /* ====== MODAL AVATARES ====== */
+    .avatar-modal-content {
+        border: 3px solid var(--border-dark);
+        border-radius: 0;
+        box-shadow: var(--shadow-hard);
+    }
+
+    .avatar-modal-content .modal-header {
+        border-bottom: 3px solid var(--border-dark);
+    }
+
+    .avatar-modal-content .modal-title {
+        font-family: var(--font-display);
+        font-weight: 800;
+        text-transform: uppercase;
+        letter-spacing: -0.5px;
+    }
+
+    .avatar-upload-box {
+        background: var(--primary-lighter);
+        border: 2px solid var(--border-dark);
+        padding: 1rem;
+        margin-bottom: 1.5rem;
+    }
+
+    .avatar-upload-box label {
+        font-family: var(--font-display);
+        font-weight: 700;
+        font-size: 0.8rem;
+        display: block;
+        margin-bottom: 0.5rem;
+    }
+
+    .avatar-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(140px, 1fr)); gap: 1rem; }
+    .avatar-card {
+        background: var(--bg-card);
+        border: 3px solid var(--border-dark);
+        padding: 0.8rem;
+        text-align: center;
+        box-shadow: 4px 4px 0px var(--border-dark);
+        transition: all 0.2s ease;
+        position: relative;
+    }
+    .avatar-card.active { border-color: #22c55e; box-shadow: 4px 4px 0px #22c55e; }
+    .avatar-card.inactive { opacity: 0.55; }
+    .avatar-card img {
+        width: 80px; height: 80px; border-radius: 50%;
+        object-fit: cover; border: 2px solid var(--border-dark);
+        margin-bottom: 0.6rem;
+    }
+    .avatar-status-badge {
+        display: inline-block;
+        font-family: var(--font-mono);
+        font-size: 0.55rem;
+        font-weight: 700;
+        text-transform: uppercase;
+        letter-spacing: 0.5px;
+        padding: 0.1rem 0.6rem;
+        border: 2px solid var(--border-dark);
+        margin-bottom: 0.5rem;
+    }
+    .avatar-status-badge.active { background: #dcfce7; color: #16a34a; }
+    .avatar-status-badge.inactive { background: #f1f5f9; color: #64748b; }
+    .avatar-card-actions { display: flex; flex-direction: column; gap: 0.35rem; }
+    .avatar-card-actions .btn-admin-innovative-sm { font-size: 0.6rem; }
+
     @media (max-width: 768px) {
         .profile-header-innovative {
             padding: 1.5rem;
@@ -262,7 +306,6 @@
     }
 </style>
 
-<!-- ====== HEADER PERFIL ====== -->
 <div class="profile-header-innovative">
     <img src="<?= APP_URL ?>/uploads/avatars/<?= $user->avatar ?? 'default.png' ?>" alt="Avatar" class="profile-avatar-innovative">
     <h2><?= htmlspecialchars($user->username) ?></h2>
@@ -272,17 +315,12 @@
         <?= htmlspecialchars($user->email) ?>
     </div>
 
-    <form method="POST" action="<?= APP_URL ?>/profile/avatar" enctype="multipart/form-data" class="upload-avatar-form-innovative">
-        <input type="hidden" name="csrf_token" value="<?= $csrfToken ?>">
-        <input type="file" name="avatar" class="form-control" accept="image/*">
-        <button type="submit" class="btn-upload-innovative">
-            <i class="bi bi-upload me-1"></i>Cambiar foto
-        </button>
-    </form>
+    <button type="button" class="btn-change-avatar-innovative" data-bs-toggle="modal" data-bs-target="#avatarModal">
+        <i class="bi bi-camera-fill me-1"></i>Cambiar avatar
+    </button>
 </div>
 
 <div class="row g-3">
-    <!-- Informacion -->
     <div class="col-md-6">
         <div class="profile-card-innovative">
             <div class="card-title"><i class="bi bi-person-badge"></i>Informacion</div>
@@ -311,7 +349,6 @@
         </div>
     </div>
 
-    <!-- Progreso -->
     <div class="col-md-6">
         <div class="profile-card-innovative">
             <div class="card-title"><i class="bi bi-bar-chart-steps"></i>Progreso por Nivel</div>
@@ -339,7 +376,6 @@
     </div>
 </div>
 
-<!-- Premios -->
 <div class="row mt-3">
     <div class="col-12">
         <div class="profile-card-innovative">
@@ -361,3 +397,97 @@
         </div>
     </div>
 </div>
+
+<!-- ====== MODAL: CAMBIAR AVATAR ====== -->
+<div class="modal fade" id="avatarModal" tabindex="-1" aria-hidden="true">
+    <div class="modal-dialog modal-lg modal-dialog-scrollable">
+        <div class="modal-content avatar-modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title"><i class="bi bi-person-badge-fill me-1"></i>Cambiar Avatar</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Cerrar"></button>
+            </div>
+            <div class="modal-body">
+                <?php if (isset($_GET['error'])): ?>
+                    <div class="alert alert-innovative alert-innovative-danger" style="border-radius:0; border:2px solid #dc2626; background:#fee2e2; color:#dc2626; padding:0.6rem 1rem; font-family: var(--font-display); margin-bottom: 1rem; font-size: 0.85rem;">
+                        <i class="bi bi-exclamation-triangle me-1"></i><?= htmlspecialchars($_GET['error']) ?>
+                    </div>
+                <?php endif; ?>
+
+                <div class="avatar-upload-box">
+                    <label><i class="bi bi-cloud-upload-fill me-1"></i>Subir imagen nueva</label>
+                    <form method="POST" action="<?= APP_URL ?>/avatars/store" enctype="multipart/form-data" class="d-flex gap-2 flex-wrap align-items-end">
+                        <input type="hidden" name="csrf_token" value="<?= $csrfToken ?>">
+                        <input type="file" name="image" class="form-control flex-grow-1" accept="image/*" required style="max-width: 260px;">
+                        <button type="submit" class="btn-admin-innovative btn-admin-innovative-sm">
+                            <i class="bi bi-plus-lg me-1"></i>Subir y activar
+                        </button>
+                    </form>
+                </div>
+
+                <?php if (!empty($avatars)): ?>
+                    <div class="avatar-grid">
+                        <?php foreach ($avatars as $avatar): ?>
+                            <div class="avatar-card <?= $avatar->activo ? 'active' : 'inactive' ?>">
+                                <span class="avatar-status-badge <?= $avatar->activo ? 'active' : 'inactive' ?>">
+                                    <?= $avatar->activo ? 'Activo' : 'Inactivo' ?>
+                                </span>
+                                <br>
+                                <img src="<?= APP_URL ?>/uploads/avatars/<?= htmlspecialchars($avatar->image) ?>" alt="Avatar">
+
+                                <div class="avatar-card-actions">
+                                    <?php if (!$avatar->activo): ?>
+                                        <form method="POST" action="<?= APP_URL ?>/avatars/activate/<?= $avatar->id ?>">
+                                            <input type="hidden" name="csrf_token" value="<?= $csrfToken ?>">
+                                            <button type="submit" class="btn-admin-innovative btn-admin-innovative-sm">
+                                                <i class="bi bi-check-circle me-1"></i>Usar este
+                                            </button>
+                                        </form>
+                                        <form method="POST" action="<?= APP_URL ?>/avatars/delete/<?= $avatar->id ?>"
+                                              onsubmit="return confirm('¿Eliminar esta imagen para siempre? No se puede deshacer.')">
+                                            <input type="hidden" name="csrf_token" value="<?= $csrfToken ?>">
+                                            <button type="submit" class="btn-admin-innovative btn-admin-innovative-sm btn-admin-innovative-danger">
+                                                <i class="bi bi-trash me-1"></i>Eliminar
+                                            </button>
+                                        </form>
+                                    <?php endif; ?>
+
+                                    <?php if ($avatar->activo): ?>
+                                        <form method="POST" action="<?= APP_URL ?>/avatars/deactivate/<?= $avatar->id ?>"
+                                              onsubmit="return confirm('¿Desactivar este avatar? No se borrará, solo dejará de usarse.')">
+                                            <input type="hidden" name="csrf_token" value="<?= $csrfToken ?>">
+                                            <button type="submit" class="btn-admin-innovative btn-admin-innovative-sm btn-admin-innovative-danger">
+                                                <i class="bi bi-slash-circle me-1"></i>Desactivar
+                                            </button>
+                                        </form>
+                                    <?php endif; ?>
+                                </div>
+                            </div>
+                        <?php endforeach; ?>
+                    </div>
+                <?php else: ?>
+                    <p class="text-gray-innovative">Aún no has subido ningún avatar. ¡Sube el primero arriba!</p>
+                <?php endif; ?>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+    document.addEventListener('DOMContentLoaded', function () {
+        const avatarModalEl = document.getElementById('avatarModal');
+        if (!avatarModalEl) return;
+
+        if (avatarModalEl.parentElement !== document.body) {
+            document.body.appendChild(avatarModalEl);
+        }
+
+        avatarModalEl.addEventListener('hidden.bs.modal', function () {
+            document.querySelectorAll('.modal-backdrop').forEach(function (bd) {
+                bd.remove();
+            });
+            document.body.classList.remove('modal-open');
+            document.body.style.removeProperty('overflow');
+            document.body.style.removeProperty('padding-right');
+        });
+    });
+</script>

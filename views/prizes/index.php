@@ -162,6 +162,8 @@
         background: var(--danger);
         color: white !important;
         box-shadow: 4px 4px 0px var(--border-dark);
+        border: 2px solid var(--border-dark);
+        cursor: pointer;
     }
 
     .btn-admin-innovative-danger:hover {
@@ -229,6 +231,9 @@
     }
 
     .admin-stats-mini span {
+        display: inline-flex;
+        align-items: center;
+        gap: 0.3rem;
         background: var(--primary-lighter);
         padding: 0.2rem 0.8rem;
         border: 2px solid var(--border-dark);
@@ -256,6 +261,11 @@
         font-weight: 700;
         padding: 0.15rem 0.8rem;
         border: 2px solid #d97706;
+    }
+
+    .delete-form-inline {
+        display: inline-block;
+        margin: 0;
     }
 
     .divider-innovative {
@@ -333,17 +343,17 @@
         <span>Total: <strong><?= count($prizes) ?></strong></span>
         <?php if (isset($corruptedCount) && $corruptedCount > 0): ?>
             <span style="background: #fee2e2; border-color: #dc2626;">
-                ⚠️ Corruptos: <strong style="color: #dc2626;"><?= $corruptedCount ?></strong>
+                <i class="bi bi-x-circle" style="color:#dc2626;"></i> Corruptos: <strong style="color: #dc2626;"><?= $corruptedCount ?></strong>
             </span>
         <?php endif; ?>
         <?php if (isset($signedCount) && $signedCount > 0): ?>
             <span style="background: #dcfce7; border-color: #16a34a;">
-                ✅ Verificados: <strong style="color: #16a34a;"><?= $signedCount ?></strong>
+                <i class="bi bi-check-circle" style="color:#16a34a;"></i> Verificados: <strong style="color: #16a34a;"><?= $signedCount ?></strong>
             </span>
         <?php endif; ?>
         <?php if (isset($unsignedCount) && $unsignedCount > 0): ?>
             <span style="background: #fef3c7; border-color: #d97706;">
-                ⚠️ Sin firma: <strong style="color: #d97706;"><?= $unsignedCount ?></strong>
+                <i class="bi bi-exclamation-triangle" style="color:#d97706;"></i> Sin firma: <strong style="color: #d97706;"><?= $unsignedCount ?></strong>
             </span>
         <?php endif; ?>
     </div>
@@ -364,11 +374,8 @@
         <tbody>
             <?php foreach ($prizes as $prize): ?>
                 <?php
-                // Determinar estado de integridad
                 $hasSignature = !empty($prize->signature);
                 $isCorrupted = isset($prize->_corrupted) && $prize->_corrupted === true;
-
-                // Si tiene firma y no está marcado como corrupto, está verificado
                 $isVerified = $hasSignature && !$isCorrupted;
                 ?>
                 <tr class="<?= $isCorrupted ? 'corrupted' : '' ?>">
@@ -380,7 +387,6 @@
                     <td><span class="badge-prize-points"><?= $prize->points_value ?> pts</span></td>
                     <td style="text-align:center;">
                         <?php
-                        // Verificar si tiene firma (buscando en attributes o directamente)
                         $signature = $prize->attributes['signature'] ?? $prize->signature ?? null;
                         $hasSignature = !empty($signature);
                         $isCorrupted = isset($prize->_corrupted) && $prize->_corrupted === true;
@@ -404,9 +410,12 @@
                         <a href="<?= APP_URL ?>/admin/prizes/edit/<?= $prize->id ?>" class="btn-admin-innovative btn-admin-innovative-sm btn-admin-innovative-warning">
                             <i class="bi bi-pencil"></i>
                         </a>
-                        <a href="<?= APP_URL ?>/admin/prizes/delete/<?= $prize->id ?>" class="btn-admin-innovative btn-admin-innovative-sm btn-admin-innovative-danger" onclick="return confirm('¿Eliminar este premio?')">
-                            <i class="bi bi-trash"></i>
-                        </a>
+                        <form method="POST" action="<?= APP_URL ?>/admin/prizes/delete/<?= $prize->id ?>" class="delete-form-inline" onsubmit="return confirm('¿Eliminar este premio?')">
+                            <input type="hidden" name="csrf_token" value="<?= $csrfToken ?>">
+                            <button type="submit" class="btn-admin-innovative btn-admin-innovative-sm btn-admin-innovative-danger">
+                                <i class="bi bi-trash"></i>
+                            </button>
+                        </form>
                     </td>
                 </tr>
             <?php endforeach; ?>
@@ -421,8 +430,8 @@
                 url: 'https://cdn.datatables.net/plug-ins/1.13.8/i18n/es-ES.json'
             },
             columnDefs: [
-                { orderable: false, searchable: false, targets: 1 },  // columna "Imagen"
-                { orderable: false, searchable: false, targets: -1 } // columna "Acciones"
+                { orderable: false, searchable: false, targets: 1 },
+                { orderable: false, searchable: false, targets: -1 }
             ],
             order: [[0, 'desc']],
             pageLength: 10,

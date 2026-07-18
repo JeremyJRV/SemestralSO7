@@ -52,7 +52,6 @@
         font-family: var(--font-display);
     }
 
-    /* ========== TABLA ADMIN ========== */
     .table-admin-innovative {
         background: transparent;
         border-collapse: collapse;
@@ -106,7 +105,6 @@
         color: var(--text-dark);
     }
 
-    /* ========== BOTONES ADMIN ========== */
     .btn-admin-innovative {
         background: var(--primary);
         color: white !important;
@@ -155,6 +153,8 @@
         background: var(--danger);
         color: white !important;
         box-shadow: 4px 4px 0px var(--border-dark);
+        border: 2px solid var(--border-dark);
+        cursor: pointer;
     }
 
     .btn-admin-innovative-danger:hover {
@@ -184,7 +184,6 @@
         box-shadow: 4px 4px 0px var(--primary);
     }
 
-    /* ========== BADGES ========== */
     .badge-role-admin {
         display: inline-block;
         padding: 0.15rem 0.8rem;
@@ -214,55 +213,12 @@
         border-color: #dc2626;
     }
 
-    /* ========== HEADER ACTIONS ========== */
     .admin-actions {
         display: flex;
         flex-wrap: wrap;
         align-items: center;
         gap: 0.8rem;
         margin-bottom: 1.5rem;
-    }
-
-    .admin-search {
-        display: flex;
-        gap: 0.5rem;
-        flex: 1;
-        min-width: 200px;
-    }
-
-    .admin-search input {
-        flex: 1;
-        border: 2px solid var(--border-dark);
-        border-radius: 0;
-        padding: 0.5rem 1rem;
-        font-family: var(--font-display);
-        font-size: 0.9rem;
-        transition: all 0.15s ease;
-    }
-
-    .admin-search input:focus {
-        outline: none;
-        border-color: var(--primary);
-        box-shadow: 4px 4px 0px var(--border-dark);
-    }
-
-    .admin-search button {
-        background: var(--border-dark);
-        color: white;
-        border: 2px solid var(--border-dark);
-        padding: 0.5rem 1.2rem;
-        font-family: var(--font-display);
-        font-weight: 600;
-        font-size: 0.8rem;
-        transition: all 0.15s ease;
-        cursor: pointer;
-    }
-
-    .admin-search button:hover {
-        background: var(--primary);
-        border-color: var(--primary);
-        transform: translate(-2px, -2px);
-        box-shadow: 4px 4px 0px var(--border-dark);
     }
 
     .admin-stats-mini {
@@ -281,6 +237,11 @@
 
     .admin-stats-mini strong {
         color: var(--text-dark);
+    }
+
+    .delete-form-inline {
+        display: inline-block;
+        margin: 0;
     }
 
     .divider-innovative {
@@ -310,10 +271,6 @@
         .admin-actions {
             flex-direction: column;
             align-items: stretch;
-        }
-
-        .admin-search {
-            flex-direction: column;
         }
 
         .admin-stats-mini {
@@ -356,10 +313,6 @@
 <?php endif; ?>
 
 <div class="admin-actions">
-    <div class="admin-search">
-        <input type="text" placeholder="Buscar usuario..." id="searchUser" onkeyup="filterTable()">
-        <button><i class="bi bi-search me-1"></i>Buscar</button>
-    </div>
     <a href="<?= APP_URL ?>/admin/users/create" class="btn-admin-innovative">
         <i class="bi bi-person-plus me-1"></i>Nuevo Usuario
     </a>
@@ -399,9 +352,12 @@
                             <i class="bi bi-pencil"></i>
                         </a>
                         <?php if ($u->id != ($authUser->id ?? 0)): ?>
-                            <a href="<?= APP_URL ?>/admin/users/delete/<?= $u->id ?>" class="btn-admin-innovative btn-admin-innovative-sm btn-admin-innovative-danger" onclick="return confirm('¿Eliminar este usuario?')">
-                                <i class="bi bi-trash"></i>
-                            </a>
+                            <form method="POST" action="<?= APP_URL ?>/admin/users/delete/<?= $u->id ?>" class="delete-form-inline" onsubmit="return confirm('¿Eliminar este usuario?')">
+                                <input type="hidden" name="csrf_token" value="<?= $csrfToken ?>">
+                                <button type="submit" class="btn-admin-innovative btn-admin-innovative-sm btn-admin-innovative-danger">
+                                    <i class="bi bi-trash"></i>
+                                </button>
+                            </form>
                         <?php endif; ?>
                     </td>
                 </tr>
@@ -417,7 +373,7 @@
                 url: 'https://cdn.datatables.net/plug-ins/1.13.8/i18n/es-ES.json'
             },
             columnDefs: [
-                { orderable: false, searchable: false, targets: -1 } // columna "Acciones"
+                { orderable: false, searchable: false, targets: -1 }
             ],
             order: [[0, 'desc']],
             pageLength: 10,
@@ -432,25 +388,3 @@
     <i class="bi bi-shield-check me-1"></i>
     Solo los administradores pueden acceder a este panel
 </div>
-
-<script>
-    function filterTable() {
-        const input = document.getElementById('searchUser');
-        const filter = input.value.toLowerCase();
-        const table = document.getElementById('userTable');
-        const rows = table.getElementsByTagName('tr');
-
-        for (let i = 1; i < rows.length; i++) {
-            const cells = rows[i].getElementsByTagName('td');
-            let match = false;
-            for (let j = 0; j < cells.length; j++) {
-                const text = cells[j].textContent || cells[j].innerText;
-                if (text.toLowerCase().indexOf(filter) > -1) {
-                    match = true;
-                    break;
-                }
-            }
-            rows[i].style.display = match ? '' : 'none';
-        }
-    }
-</script>

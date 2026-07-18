@@ -3,6 +3,7 @@ namespace App\Controllers;
 
 use clases\Controller;
 use clases\Session;
+use clases\Database;
 use App\Models\Question;
 use App\Models\Option;
 use App\Models\ThemeLevel;
@@ -15,17 +16,19 @@ class QuestionController extends Controller
         $themeLevels = ThemeLevel::all();
         $questions = $themeLevelId ? Question::byThemeLevel($themeLevelId) : Question::all();
 
-        // Verificar integridad de cada pregunta
         foreach ($questions as $key => $question) {
             if (!$question->verifyIntegrity()) {
                 $questions[$key]->_corrupted = true;
             }
         }
 
+        $csrfToken = Session::csrfToken();
+
         $this->render('admin/questions', [
             'themeLevels' => $themeLevels,
             'questions' => $questions,
-            'selectedThemeLevel' => $themeLevelId
+            'selectedThemeLevel' => $themeLevelId,
+            'csrfToken' => $csrfToken
         ]);
     }
 
@@ -54,7 +57,6 @@ class QuestionController extends Controller
             'created_by' => Session::get('user_id')
         ]);
 
-        // Guardar con firma digital
         $question->saveWithSignature();
 
         $this->saveOptionsForQuestion($question->id, $data);
@@ -66,19 +68,14 @@ class QuestionController extends Controller
     {
         $this->requireRole(['armador','admin']);
 
-        // Verificar integridad de la pregunta
         $question = Question::findWithVerification($id);
         if (!$question) {
             $this->redirect('/admin/questions');
         }
 
-        // Precargar las opciones existentes para que el formulario
-        // pueda mostrarlas (antes esto no se hacía y el formulario
-        // de edición siempre aparecía con las opciones vacías).
         $existingOptions = Option::where('question_id', $question->id);
         $question->options = $existingOptions;
 
-        // Precargar cuál opción es la correcta / valor booleano correcto
         if ($question->type === 'multiple') {
             foreach ($existingOptions as $index => $opt) {
                 if ($opt->is_correct) {
@@ -110,7 +107,6 @@ class QuestionController extends Controller
         $this->csrfCheck();
         $data = $_POST;
 
-        // Verificar integridad antes de actualizar
         $question = Question::findWithVerification($id);
         if (!$question) {
             $this->redirect('/admin/questions');
@@ -118,14 +114,10 @@ class QuestionController extends Controller
 
         $question->theme_level_id = $data['theme_level_id'];
         $question->text = $data['text'];
-        $question->type = $data['type']; // BUG CORREGIDO: antes nunca se actualizaba el tipo
-
-        // Guardar con nueva firma
+        $question->type = $data['type'];
         $question->saveWithSignature();
 
-        // BUG CORREGIDO: antes se borraban las opciones viejas y nunca se
-        // volvían a crear las nuevas, dejando la pregunta sin opciones.
-        Option::deleteByQuestion($id);
+        $this->deleteOptionsForceCascade($id);
         $this->saveOptionsForQuestion($id, $data);
 
         $this->redirect('/admin/questions');
@@ -134,35 +126,44 @@ class QuestionController extends Controller
     public function delete($id)
     {
         $this->requireRole(['armador','admin']);
+        $this->csrfCheck();
         $question = Question::find($id);
 
         if ($question) {
-            // BUG CORREGIDO: borrar una pregunta ya respondida en algún
-            // juego viola la restricción de game_responses.question_id
-            // (y .selected_option_id sobre sus opciones), que NO tiene
-            // ON DELETE CASCADE a propósito (para no perder el historial
-            // de partidas). Antes esto tronaba con un error 500 sin
-            // control, y además se borraban las opciones ANTES de saber
-            // si la pregunta se podía borrar, dejando datos huérfanos.
-            try {
-                Option::deleteByQuestion($id);
-                $question->delete();
-            } catch (\PDOException $e) {
-                error_log('No se pudo eliminar pregunta ID ' . $id . ': ' . $e->getMessage());
-                $this->redirect('/admin/questions?error=' . urlencode(
-                    'No se puede eliminar esta pregunta porque ya fue respondida en alguna partida.'
-                ));
-                return;
-            }
+            $this->deleteOptionsForceCascade($id);
+            $question->delete();
         }
         $this->redirect('/admin/questions');
     }
 
     /**
-     * Crea las opciones (múltiple o verdadero/falso) para una pregunta,
-     * a partir de los datos del formulario. Centralizado aquí porque
-     * store() y update() necesitan hacer exactamente lo mismo (DRY).
+     * TEMPORAL: borra también las respuestas de jugadores asociadas a
+     * esta pregunta antes de borrar sus opciones. Permite eliminar
+     * preguntas de prueba durante desarrollo, pero pierde el detalle
+     * histórico de esa pregunta en partidas ya jugadas. Revisar antes
+     * de la entrega final si se debe reemplazar por una desactivación
+     * (campo 'active') en vez de borrado físico.
      */
+    private function deleteQuestionResponsesForQuestion(int $questionId): void
+    {
+        $db = Database::getInstance()->getConnection();
+        $stmt = $db->prepare(
+            "DELETE gr FROM game_responses gr
+             INNER JOIN options o ON o.id = gr.selected_option_id
+             WHERE o.question_id = :qid"
+        );
+        $stmt->execute(['qid' => $questionId]);
+
+        $stmt2 = $db->prepare("DELETE FROM game_responses WHERE question_id = :qid");
+        $stmt2->execute(['qid' => $questionId]);
+    }
+
+    private function deleteOptionsForceCascade(int $questionId): void
+    {
+        $this->deleteQuestionResponsesForQuestion($questionId);
+        Option::deleteByQuestion($questionId);
+    }
+
     private function saveOptionsForQuestion(int $questionId, array $data): void
     {
         if ($data['type'] === 'multiple') {

@@ -13,7 +13,8 @@ class ThemeController extends Controller
     public function index()
     {
         $themes = Theme::all();
-        $this->render('themes/index', ['themes' => $themes]);
+        $csrfToken = Session::csrfToken();
+        $this->render('themes/index', ['themes' => $themes, 'csrfToken' => $csrfToken]);
     }
 
     public function create()
@@ -35,10 +36,6 @@ class ThemeController extends Controller
             'created_by' => Session::get('user_id')
         ]);
 
-        // BUG CORREGIDO: themes.name tiene una restricción UNIQUE en la BD.
-        // Antes, crear un tema con un nombre ya existente (ej. "PHP" otra
-        // vez) tronaba con un error 500 sin control en vez de mostrar un
-        // mensaje amigable.
         try {
             $theme->save();
         } catch (\PDOException $e) {
@@ -50,15 +47,6 @@ class ThemeController extends Controller
             return;
         }
 
-        // FUNCIONALIDAD FALTANTE AGREGADA: al crear un tema no se generaban
-        // sus niveles (Básico/Intermedio/Avanzado) en theme_levels. Sin esas
-        // filas, el tema nunca aparece en los selectores de "Tema y Nivel"
-        // (preguntas, selección de juego, etc.) porque todo el sistema arma
-        // sus consultas a partir de theme_levels, no de themes directamente.
-        // Ahora, al crear un tema, se crea automáticamente una fila en
-        // theme_levels por cada nivel existente (Básico, Intermedio,
-        // Avanzado), igual que ya estaban los temas PHP y JavaScript
-        // sembrados a mano en el script SQL original.
         $levels = Level::all();
         foreach ($levels as $level) {
             $themeLevel = new ThemeLevel([
@@ -107,14 +95,10 @@ class ThemeController extends Controller
     public function delete($id)
     {
         $this->requireRole(['armador', 'admin']);
+        $this->csrfCheck();
         $theme = Theme::find($id);
 
         if ($theme) {
-            // BUG CORREGIDO: borrar un tema que ya tiene sesiones de juego
-            // jugadas (a través de sus theme_levels) viola la restricción
-            // de game_sessions.theme_level_id, que NO tiene ON DELETE
-            // CASCADE a propósito (para no perder el historial). Antes
-            // esto tronaba con un error 500 sin control.
             try {
                 $theme->delete();
             } catch (\PDOException $e) {
@@ -136,11 +120,6 @@ class ThemeController extends Controller
             return;
         }
 
-        // BUG CORREGIDO: esta ruta es POST y modifica datos, pero nunca
-        // validaba el token CSRF (a diferencia de todos los demás formularios
-        // POST del sistema). Esto la dejaba abierta a ataques CSRF: un sitio
-        // malicioso podía hacer que el navegador de un usuario logueado
-        // enviara "me gusta" en su nombre sin que él lo supiera.
         $this->csrfCheck();
 
         $themeId = $_POST['theme_id'] ?? null;

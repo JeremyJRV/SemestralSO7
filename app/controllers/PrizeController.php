@@ -48,11 +48,14 @@ class PrizeController extends Controller
             $prizes[] = $prize;
         }
 
+        $csrfToken = Session::csrfToken();
+
         $this->render('prizes/index', [
             'prizes' => $prizes,
             'corruptedCount' => $corruptedCount,
             'signedCount' => $signedCount,
-            'unsignedCount' => $unsignedCount
+            'unsignedCount' => $unsignedCount,
+            'csrfToken' => $csrfToken
         ]);
     }
 
@@ -85,7 +88,6 @@ class PrizeController extends Controller
             $prize->syncLevels($_POST['levels']);
         }
 
-        // RECARGAR EL PREMIO DESDE LA BASE DE DATOS PARA ASEGURAR QUE LA FIRMA ESTÉ DISPONIBLE
         $prize = Prize::find($prize->id);
 
         $this->redirect('/admin/prizes');
@@ -132,7 +134,6 @@ class PrizeController extends Controller
 
         $prize = new Prize($row);
 
-        // Actualizar datos
         $prize->name = $_POST['name'];
         $prize->points_value = (int)$_POST['points_value'];
 
@@ -140,10 +141,8 @@ class PrizeController extends Controller
             $prize->image = $this->uploadImage('image');
         }
 
-        // Guardar CON firma (esto regenera la firma)
         $prize->saveWithSignature();
 
-        // Sincronizar niveles
         $prize->syncLevels($_POST['levels'] ?? []);
 
         $this->redirect('/admin/prizes');
@@ -152,24 +151,19 @@ class PrizeController extends Controller
     public function delete($id)
     {
         $this->requireRole(['armador', 'admin']);
+        $this->csrfCheck();
 
         $db = Database::getInstance()->getConnection();
 
-        // Eliminar relaciones primero
         $db->prepare("DELETE FROM prize_levels WHERE prize_id = :pid")->execute(['pid' => $id]);
         $db->prepare("DELETE FROM user_prizes WHERE prize_id = :pid")->execute(['pid' => $id]);
 
-        // Luego eliminar el premio
         $stmt = $db->prepare("DELETE FROM prizes WHERE id = :id");
         $stmt->execute(['id' => $id]);
 
         $this->redirect('/admin/prizes');
     }
-
-    // BUG DE DRY CORREGIDO: este método duplicaba exactamente la misma
-    // lógica de validación (tipo, tamaño, extensión) que
-    // ProfileController::uploadAvatar(). Ambos ahora delegan en
-    // clases\FileUploader::upload().
+//fff
     private function uploadImage($field): string
     {
         if (empty($_FILES[$field]['name'])) {

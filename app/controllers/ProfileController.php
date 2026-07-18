@@ -19,19 +19,12 @@ class ProfileController extends Controller
         $user = User::find($userId);
         $progress = UserLevelProgress::byUser($userId);
         $prizes = UserPrize::byUser($userId);
-        $this->render('profile/show', compact('user', 'progress', 'prizes'));
+        $avatars = Avatar::byUser($userId);
+        $csrfToken = Session::csrfToken();
+
+        $this->render('profile/show', compact('user', 'progress', 'prizes', 'avatars', 'csrfToken'));
     }
 
-    /**
-     * Subida rápida de avatar desde la pantalla de Perfil.
-     *
-     * ACTUALIZADO: antes esto sobreescribía directamente el campo
-     * users.avatar, sin dejar historial ni permitir desactivar sin
-     * borrar. Ahora crea un registro nuevo en la tabla `avatars` (CRUD
-     * completo en /avatars) y lo activa automáticamente, cumpliendo con
-     * el requisito de la rúbrica de tener un módulo de avatares con
-     * campo "Activo".
-     */
     public function updateAvatar()
     {
         $userId = Session::get('user_id');

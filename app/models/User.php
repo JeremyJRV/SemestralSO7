@@ -8,7 +8,6 @@ class User extends Model
 {
     protected static string $table = 'users';
 
-    // Buscar por email (para login)
     public static function findByEmail(string $email): ?self
     {
         $db = Database::getInstance()->getConnection();
@@ -18,7 +17,6 @@ class User extends Model
         return $row ? new self($row) : null;
     }
 
-    // Total de puntos (puede ser calculado, pero se guarda en la columna total_points)
     public function addPoints(int $points): void
     {
         $this->total_points += $points;
@@ -26,9 +24,11 @@ class User extends Model
     }
 
     /**
-     * Ranking global de jugadores por puntos totales.
-     * Usado en la nueva pantalla de Ranking (rúbrica: "el jugador puede
-     * ver el avance de otros jugadores y su posición").
+     * Ranking global de jugadores por puntos totales. En caso de empate,
+     * desempata por quién alcanzó ese puntaje primero (updated_at más
+     * antiguo), para que la posición coincida siempre con
+     * globalRankPosition() y no haya contradicciones visuales entre
+     * el banner "tu posición" y la fila que ocupa en la tabla.
      */
     public static function topByPoints(int $limit = 20): array
     {
@@ -37,7 +37,7 @@ class User extends Model
             "SELECT id, username, avatar, total_points, role
              FROM users
              WHERE role = 'player'
-             ORDER BY total_points DESC
+             ORDER BY total_points DESC, updated_at ASC
              LIMIT :lim"
         );
         $stmt->bindValue(':lim', $limit, \PDO::PARAM_INT);
@@ -46,17 +46,21 @@ class User extends Model
     }
 
     /**
-     * Posición (1-based) de un usuario específico en el ranking global
-     * de puntos, sin importar si está dentro del top mostrado o no.
+     * Posición (1-based) de un usuario específico en el ranking global,
+     * usando el mismo criterio de desempate que topByPoints(): en caso
+     * de mismo puntaje, cuenta como "por delante" a quien lo alcanzó
+     * antes (updated_at más antiguo).
      */
     public static function globalRankPosition(int $userId): int
     {
         $db = Database::getInstance()->getConnection();
         $stmt = $db->prepare(
             "SELECT COUNT(*) + 1 AS position
-             FROM users
-             WHERE role = 'player' AND total_points > (
-                 SELECT total_points FROM users WHERE id = :uid
+             FROM users u2, users me
+             WHERE me.id = :uid AND u2.role = 'player'
+             AND (
+                 u2.total_points > me.total_points
+                 OR (u2.total_points = me.total_points AND u2.updated_at < me.updated_at)
              )"
         );
         $stmt->execute(['uid' => $userId]);

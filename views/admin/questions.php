@@ -153,6 +153,8 @@
         background: var(--danger);
         color: white !important;
         box-shadow: 4px 4px 0px var(--border-dark);
+        border: 2px solid var(--border-dark);
+        cursor: pointer;
     }
 
     .btn-admin-innovative-danger:hover {
@@ -264,6 +266,11 @@
         overflow: hidden;
         text-overflow: ellipsis;
         display: block;
+    }
+
+    .delete-form-inline {
+        display: inline-block;
+        margin: 0;
     }
 
     .divider-innovative {
@@ -399,9 +406,12 @@
                         <a href="<?= APP_URL ?>/admin/questions/edit/<?= $q->id ?>" class="btn-admin-innovative btn-admin-innovative-sm btn-admin-innovative-warning">
                             <i class="bi bi-pencil"></i>
                         </a>
-                        <a href="<?= APP_URL ?>/admin/questions/delete/<?= $q->id ?>" class="btn-admin-innovative btn-admin-innovative-sm btn-admin-innovative-danger" onclick="return confirm('¿Eliminar esta pregunta?')">
-                            <i class="bi bi-trash"></i>
-                        </a>
+                        <form method="POST" action="<?= APP_URL ?>/admin/questions/delete/<?= $q->id ?>" class="delete-form-inline" onsubmit="return confirm('¿Eliminar esta pregunta?')">
+                            <input type="hidden" name="csrf_token" value="<?= $csrfToken ?>">
+                            <button type="submit" class="btn-admin-innovative btn-admin-innovative-sm btn-admin-innovative-danger">
+                                <i class="bi bi-trash"></i>
+                            </button>
+                        </form>
                     </td>
                 </tr>
             <?php endforeach; ?>
@@ -416,7 +426,7 @@
                 url: 'https://cdn.datatables.net/plug-ins/1.13.8/i18n/es-ES.json'
             },
             columnDefs: [
-                { orderable: false, searchable: false, targets: -1 } // columna "Acciones"
+                { orderable: false, searchable: false, targets: -1 }
             ],
             order: [[0, 'desc']],
             pageLength: 10,

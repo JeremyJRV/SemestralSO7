@@ -153,6 +153,8 @@
         background: var(--danger);
         color: white !important;
         box-shadow: 4px 4px 0px var(--border-dark);
+        border: 2px solid var(--border-dark);
+        cursor: pointer;
     }
 
     .btn-admin-innovative-danger:hover {
@@ -195,6 +197,11 @@
         font-weight: 700;
         padding: 0.1rem 0.6rem;
         border: 2px solid var(--border-dark);
+    }
+
+    .delete-form-inline {
+        display: inline-block;
+        margin: 0;
     }
 
     .divider-innovative {
@@ -274,9 +281,12 @@
                         <a href="<?= APP_URL ?>/admin/themes/edit/<?= $theme->id ?>" class="btn-admin-innovative btn-admin-innovative-sm btn-admin-innovative-warning">
                             <i class="bi bi-pencil"></i> Editar
                         </a>
-                        <a href="<?= APP_URL ?>/admin/themes/delete/<?= $theme->id ?>" class="btn-admin-innovative btn-admin-innovative-sm btn-admin-innovative-danger" onclick="return confirm('¿Eliminar este tema?')">
-                            <i class="bi bi-trash"></i> Eliminar
-                        </a>
+                        <form method="POST" action="<?= APP_URL ?>/admin/themes/delete/<?= $theme->id ?>" class="delete-form-inline" onsubmit="return confirm('¿Eliminar este tema?')">
+                            <input type="hidden" name="csrf_token" value="<?= $csrfToken ?>">
+                            <button type="submit" class="btn-admin-innovative btn-admin-innovative-sm btn-admin-innovative-danger">
+                                <i class="bi bi-trash"></i> Eliminar
+                            </button>
+                        </form>
                     </td>
                 </tr>
             <?php endforeach; ?>

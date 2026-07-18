@@ -6,37 +6,31 @@
         margin-bottom: 0.5rem;
     }
 
-    /* Tier 1: PERFECTO (100%) - trofeo dorado con rebote + brillo */
     .result-icon-animated.tier-perfect {
         color: #d4af37;
         animation: bounce-in 0.6s ease, glow-pulse 1.5s ease-in-out infinite 0.6s;
     }
 
-    /* Tier 2: EXCELENTE (80-99%) - estrella con pulso */
     .result-icon-animated.tier-excellent {
         color: var(--primary);
         animation: bounce-in 0.6s ease, pulse-scale 1.8s ease-in-out infinite 0.6s;
     }
 
-    /* Tier 3: BIEN (50-79%) - pulgar arriba con meneo */
     .result-icon-animated.tier-good {
         color: #22c55e;
         animation: bounce-in 0.6s ease, wiggle 2s ease-in-out infinite 0.6s;
     }
 
-    /* Tier 4: SIGUE PRACTICANDO (1-49%) - diana con vibración suave */
     .result-icon-animated.tier-practice {
         color: #f59e0b;
         animation: bounce-in 0.6s ease, gentle-shake 2.5s ease-in-out infinite 0.6s;
     }
 
-    /* Tier 5: NO TE RINDAS (0%) - carita amigable con respiración */
     .result-icon-animated.tier-retry {
         color: #64748b;
         animation: bounce-in 0.6s ease, breathe 2.2s ease-in-out infinite 0.6s;
     }
 
-    /* ---------- Confeti para el tier perfecto ---------- */
     .confetti-piece {
         position: absolute;
         width: 8px;
@@ -46,7 +40,6 @@
         animation: confetti-fall 1.8s ease-in forwards;
     }
 
-    /* ---------- Keyframes ---------- */
     @keyframes bounce-in {
         0%   { transform: scale(0) rotate(-15deg); opacity: 0; }
         60%  { transform: scale(1.2) rotate(5deg); opacity: 1; }
@@ -304,6 +297,67 @@
         font-size: 0.8rem;
     }
 
+    /* ---------- Bloque de premio ganado ---------- */
+    .prize-won-banner {
+        background: linear-gradient(135deg, #fffbeb 0%, var(--bg-card) 100%);
+        border: 3px solid var(--gold, #d4af37);
+        box-shadow: 6px 6px 0px var(--border-dark);
+        padding: 1.5rem 2rem;
+        margin-bottom: 2rem;
+        text-align: center;
+        position: relative;
+        animation: bounce-in 0.6s ease;
+    }
+
+    .prize-won-banner .prize-won-label {
+        font-family: var(--font-mono);
+        font-size: 0.7rem;
+        font-weight: 700;
+        text-transform: uppercase;
+        letter-spacing: 1px;
+        color: #b8860b;
+        margin-bottom: 0.8rem;
+        display: block;
+    }
+
+    .prize-won-grid {
+        display: flex;
+        flex-wrap: wrap;
+        justify-content: center;
+        gap: 1.2rem;
+    }
+
+    .prize-won-item {
+        background: var(--bg-card);
+        border: 3px solid var(--border-dark);
+        box-shadow: 4px 4px 0px var(--border-dark);
+        padding: 1rem 1.2rem;
+        text-align: center;
+        min-width: 140px;
+    }
+
+    .prize-won-item img {
+        width: 64px;
+        height: 64px;
+        object-fit: contain;
+        margin-bottom: 0.5rem;
+    }
+
+    .prize-won-item .prize-won-name {
+        font-family: var(--font-display);
+        font-weight: 700;
+        font-size: 0.9rem;
+        color: var(--text-dark);
+        margin-bottom: 0.2rem;
+    }
+
+    .prize-won-item .prize-won-points {
+        font-family: var(--font-mono);
+        font-weight: 700;
+        font-size: 0.8rem;
+        color: var(--primary);
+    }
+
     @media (max-width: 768px) {
         .result-stats-innovative {
             grid-template-columns: repeat(2, 1fr);
@@ -314,14 +368,21 @@
             width: 100%;
             text-align: center;
         }
+        .prize-won-banner {
+            padding: 1.2rem;
+        }
+        .prize-won-item {
+            min-width: 110px;
+            padding: 0.8rem;
+        }
+        .prize-won-item img {
+            width: 48px;
+            height: 48px;
+        }
     }
 </style>
 
 <?php
-// NUEVO (rúbrica punto 16): antes solo había 2 estados (aprobado/no
-// aprobado según el 80%). Ahora se muestra una imagen animada distinta
-// según el puntaje EXACTO obtenido (5/5 no es lo mismo que 4/5), con
-// 5 niveles de resultado.
 $percentage = $result['percentage'] ?? 0;
 $correct = $result['correct'] ?? 0;
 $total = $result['total'] ?? 0;
@@ -353,12 +414,11 @@ if ($total > 0 && $correct === $total) {
     $subtitle = 'Vuelve a intentarlo, tú puedes lograrlo';
 }
 
-$passed = $percentage >= 80; // se conserva para el color verde/rojo de "Precisión"
+$passed = $percentage >= 80;
 ?>
 
 <div class="results-header-innovative" style="position:relative; overflow:hidden;">
     <?php if ($tier === 'perfect'): ?>
-        <!-- Confeti (solo en el resultado perfecto) -->
         <?php
         $confettiColors = ['#fbbf24', '#f472b6', '#60a5fa', '#34d399', '#a78bfa'];
         for ($i = 0; $i < 14; $i++):
@@ -376,6 +436,24 @@ $passed = $percentage >= 80; // se conserva para el color verde/rojo de "Precisi
     <h2><?= htmlspecialchars($title) ?></h2>
     <p class="result-subtitle"><?= htmlspecialchars($subtitle) ?></p>
 </div>
+
+<?php if (!empty($newPrizes)): ?>
+    <div class="prize-won-banner">
+        <span class="prize-won-label">
+            <i class="bi bi-gift-fill me-1"></i>
+            <?= count($newPrizes) === 1 ? '¡Ganaste un premio nuevo!' : '¡Ganaste premios nuevos!' ?>
+        </span>
+        <div class="prize-won-grid">
+            <?php foreach ($newPrizes as $prize): ?>
+                <div class="prize-won-item">
+                    <img src="<?= APP_URL ?>/images/prizes/<?= htmlspecialchars($prize->image ?? 'default.png') ?>" alt="<?= htmlspecialchars($prize->name) ?>">
+                    <div class="prize-won-name"><?= htmlspecialchars($prize->name) ?></div>
+                    <div class="prize-won-points">+<?= number_format($prize->points_value) ?> pts</div>
+                </div>
+            <?php endforeach; ?>
+        </div>
+    </div>
+<?php endif; ?>
 
 <div class="result-stats-innovative">
     <div class="result-stat-innovative">
@@ -400,7 +478,6 @@ $passed = $percentage >= 80; // se conserva para el color verde/rojo de "Precisi
 
 <hr class="divider-innovative">
 
-<!-- Detalle de respuestas -->
 <?php if (!empty($responses)): ?>
     <h4 style="font-family: var(--font-display); font-weight: 700; text-transform: uppercase; letter-spacing: 0.5px; font-size: 0.9rem; margin-bottom: 1rem;">
         <i class="bi bi-list-ul me-2" style="color: var(--primary);"></i>Detalle de respuestas

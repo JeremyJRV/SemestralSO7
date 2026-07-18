@@ -37,6 +37,7 @@ $router->post('/avatars/store', 'AvatarController', 'store');
 $router->post('/avatars/update/{id}', 'AvatarController', 'update');
 $router->post('/avatars/activate/{id}', 'AvatarController', 'activate');
 $router->post('/avatars/deactivate/{id}', 'AvatarController', 'deactivate');
+$router->post('/avatars/delete/{id}', 'AvatarController', 'destroy');
 
 // Estadísticas
 $router->get('/statistics', 'StatisticsController', 'index');
@@ -50,7 +51,7 @@ $router->get('/admin/users/create', 'UserController', 'create');
 $router->post('/admin/users/store', 'UserController', 'store');
 $router->get('/admin/users/edit/{id}', 'UserController', 'edit');
 $router->post('/admin/users/update/{id}', 'UserController', 'update');
-$router->get('/admin/users/delete/{id}', 'UserController', 'delete');
+$router->post('/admin/users/delete/{id}', 'UserController', 'delete');
 
 // Admin Temas
 $router->get('/admin/themes', 'ThemeController', 'index');
@@ -58,7 +59,7 @@ $router->get('/admin/themes/create', 'ThemeController', 'create');
 $router->post('/admin/themes/store', 'ThemeController', 'store');
 $router->get('/admin/themes/edit/{id}', 'ThemeController', 'edit');
 $router->post('/admin/themes/update/{id}', 'ThemeController', 'update');
-$router->get('/admin/themes/delete/{id}', 'ThemeController', 'delete');
+$router->post('/admin/themes/delete/{id}', 'ThemeController', 'delete');
 
 // Rating de temas (ajax)
 $router->post('/themes/rate', 'ThemeController', 'rate');
@@ -69,7 +70,7 @@ $router->get('/admin/questions/create', 'QuestionController', 'create');
 $router->post('/admin/questions/store', 'QuestionController', 'store');
 $router->get('/admin/questions/edit/{id}', 'QuestionController', 'edit');
 $router->post('/admin/questions/update/{id}', 'QuestionController', 'update');
-$router->get('/admin/questions/delete/{id}', 'QuestionController', 'delete');
+$router->post('/admin/questions/delete/{id}', 'QuestionController', 'delete');
 
 // Admin Premios
 $router->get('/admin/prizes', 'PrizeController', 'index');
@@ -77,7 +78,15 @@ $router->get('/admin/prizes/create', 'PrizeController', 'create');
 $router->post('/admin/prizes/store', 'PrizeController', 'store');
 $router->get('/admin/prizes/edit/{id}', 'PrizeController', 'edit');
 $router->post('/admin/prizes/update/{id}', 'PrizeController', 'update');
-$router->get('/admin/prizes/delete/{id}', 'PrizeController', 'delete');
+$router->post('/admin/prizes/delete/{id}', 'PrizeController', 'delete');
+
+// Admin Encuestas
+$router->get('/admin/surveys', 'SurveyController', 'index');
+$router->get('/admin/surveys/create', 'SurveyController', 'create');
+$router->post('/admin/surveys/store', 'SurveyController', 'store');
+$router->get('/admin/surveys/edit/{id}', 'SurveyController', 'edit');
+$router->post('/admin/surveys/update/{id}', 'SurveyController', 'update');
+$router->post('/admin/surveys/delete/{id}', 'SurveyController', 'delete');
 
 // Landing pública
 $router->get('/', 'LandingController', 'index');

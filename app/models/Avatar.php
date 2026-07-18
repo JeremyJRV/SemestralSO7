@@ -10,9 +10,13 @@ use clases\Database;
  * la que se sincroniza en users.avatar para usarse en todo el sistema
  * (navbar, ranking, dashboard, etc.) sin tener que tocar esas vistas.
  *
- * IMPORTANTE: nunca se hace DELETE físico sobre un avatar. "Eliminar"
- * un avatar = ponerle activo = 0 (deactivate()). Esto es un requisito
- * explícito de la rúbrica: "sin borrarla de la base de datos".
+ * "Desactivar" (activo = 0) nunca borra el registro: es la acción para
+ * dejar de usar un avatar sin perderlo del historial.
+ *
+ * "Eliminar" (deleteWithFile) SÍ borra el registro y el archivo físico,
+ * pero solo está permitido sobre avatares inactivos: el jugador puede
+ * arrepentirse de haber subido una imagen y quitarla del todo, siempre
+ * que no sea la que está en uso en ese momento.
  */
 class Avatar extends Model
 {
@@ -46,7 +50,7 @@ class Avatar extends Model
     {
         $avatar = self::find($avatarId);
         if (!$avatar || (int)$avatar->user_id !== $userId) {
-            return false; // no existe o no le pertenece a este usuario
+            return false;
         }
 
         $db = Database::getInstance()->getConnection();
@@ -89,6 +93,31 @@ class Avatar extends Model
             $db->prepare("UPDATE users SET avatar = :img WHERE id = :uid")
                ->execute(['img' => $next->image ?? null, 'uid' => $userId]);
         }
+        return true;
+    }
+
+    /**
+     * Borra un avatar de forma definitiva: la fila de la base de datos
+     * Y el archivo físico en disco. Solo se permite si el avatar NO
+     * está activo (no se puede borrar el que está en uso).
+     */
+    public static function deleteWithFile(int $avatarId, int $userId): bool
+    {
+        $avatar = self::find($avatarId);
+        if (!$avatar || (int)$avatar->user_id !== $userId) {
+            return false;
+        }
+
+        if ((bool)$avatar->activo) {
+            return false;
+        }
+
+        $path = __DIR__ . '/../../public/uploads/avatars/' . $avatar->image;
+        if (is_file($path)) {
+            @unlink($path);
+        }
+
+        $avatar->delete();
         return true;
     }
 }
