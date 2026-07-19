@@ -103,86 +103,20 @@
         border: 2px solid var(--border-dark);
     }
 
-    .rating-bar-innovative {
-        display: flex;
-        align-items: center;
-        gap: 0.8rem;
-        padding: 0.4rem 0;
-    }
-
-    .rating-bar-innovative .rating-label {
-        min-width: 100px;
+    /* Etiqueta del nombre del tema arriba de cada barra */
+    .rating-label {
         color: var(--text-gray);
         font-weight: 500;
         font-size: 0.85rem;
         font-family: var(--font-display);
     }
 
-    .rating-track-innovative {
-        flex: 1;
-        height: 10px;
-        background: var(--bg-page);
-        border: 2px solid var(--border-dark);
-        overflow: hidden;
-        position: relative;
-    }
-
-    .rating-track-innovative .fill-boring {
-        height: 100%;
-        background: #f87171;
-        float: left;
-    }
-
-    .rating-track-innovative .fill-interesting {
-        height: 100%;
-        background: #fbbf24;
-        float: left;
-    }
-
-    .rating-track-innovative .fill-great {
-        height: 100%;
-        background: #34d399;
-        float: left;
-    }
-
-    .rating-value-innovative {
-        min-width: 30px;
-        font-family: var(--font-mono);
-        font-weight: 700;
-        font-size: 0.8rem;
-        color: var(--text-dark);
-        text-align: right;
-    }
-
-    .rating-legend-innovative {
-        display: flex;
-        gap: 1.5rem;
-        flex-wrap: wrap;
-        margin-top: 0.5rem;
-        padding-top: 0.8rem;
-        border-top: 2px solid var(--border-dark);
-    }
-
-    .rating-legend-innovative .legend-item {
-        display: flex;
-        align-items: center;
-        gap: 0.4rem;
-        font-family: var(--font-mono);
-        font-size: 0.7rem;
-        color: var(--text-gray);
-        font-weight: 600;
-    }
-
-    .rating-legend-innovative .legend-item .dot {
-        width: 12px;
-        height: 12px;
-        display: inline-block;
-        border: 2px solid var(--border-dark);
-    }
-
-    .dot-boring { background: #f87171; }
-    .dot-interesting { background: #fbbf24; }
-    .dot-great { background: #34d399; }
+    /* Colores compartidos por AMBAS barras (valoración de la app y
+       calificación de temas), ya que las dos reutilizan el mismo
+       componente visual .app-rating-track-innovative. */
+    .fill-boring { background: #f87171; }
+    .fill-interesting { background: #fbbf24; }
+    .fill-great { background: #34d399; }
 
     /* AGREGADO: desglose en texto de % y total de votos por tema */
     .rating-pct-breakdown {
@@ -202,10 +136,11 @@
         margin-left: auto;
     }
 
-    /* Barra de valoración de la app — MISMO componente visual que en
-       views/admin/feedback.php. Se repite aquí porque cada vista trae su
-       propio <style> (ver pendiente #4 de DRY: mover estos bloques
-       compartidos a un solo CSS incluido en el layout). */
+    /* Barra de valoración (tipo píldora) — usada tanto para "Valoración
+       de la aplicación" como para "Calificaciones de temas". Se repite
+       aquí porque cada vista trae su propio <style> (ver pendiente #4 de
+       DRY: mover estos bloques compartidos a un solo CSS incluido en el
+       layout). */
     .app-rating-track-innovative {
         display: flex;
         width: 100%;
@@ -245,9 +180,6 @@
 
     @media (max-width: 768px) {
         .stats-header-innovative { padding: 1rem 1.2rem; }
-        .rating-bar-innovative { flex-wrap: wrap; gap: 0.3rem; }
-        .rating-bar-innovative .rating-label { min-width: 80px; font-size: 0.75rem; }
-        .rating-legend-innovative { gap: 0.8rem; }
     }
 </style>
 
@@ -312,9 +244,8 @@
             <div class="stat-card-stats-innovative">
                 <h5><i class="bi bi-stopwatch"></i>Tiempo promedio de respuesta (todos los usuarios)</h5>
 
-
                 <p class="stat-name" style="margin-bottom: 1rem;">
-                   Promedio general del sistema: 
+                   Promedio general del sistema:
                    <span class="stat-count">
                     <?= number_format(($overallAvgTime ?? 0) / 1000, 2) ?> s
                    </span>
@@ -349,13 +280,13 @@
                 </table>
                 <?php else: ?>
                     <p class="text-gray-innovative text-center" style="padding: 1rem 0; font-family: var(--font-display);">
-                     <i class="bi bi-emoji-smile me-1"></i> Aún no hay respuestas registradas.   
+                     <i class="bi bi-emoji-smile me-1"></i> Aún no hay respuestas registradas.
                     </p>
                 <?php endif; ?>
             </div>
-        </div>        
-    </div>        
-                           
+        </div>
+    </div>
+
     <!-- Temas más jugados -->
     <div class="col-md-6">
         <div class="stat-card-stats-innovative">
@@ -378,9 +309,7 @@
         </div>
     </div>
 
-    <!-- AGREGADO: valoración general de la aplicación (mucho/bastante/
-         regular/medio), misma barra que en /admin/feedback, para que se
-         vea junto a la de temas ya que ambas son "del sistema". -->
+    <!-- Valoración general de la aplicación (mucho/bastante/regular/medio) -->
     <div class="col-md-6">
         <div class="stat-card-stats-innovative">
             <h5><i class="bi bi-emoji-smile"></i>Valoración de la aplicación</h5>
@@ -416,30 +345,30 @@
         </div>
     </div>
 
-    <!-- Calificaciones -->
+    <!-- Calificaciones de temas -->
     <div class="col-md-6">
         <div class="stat-card-stats-innovative">
             <h5><i class="bi bi-star"></i>Calificaciones de temas</h5>
             <?php if (!empty($ratings)): ?>
                 <?php foreach ($ratings as $r): ?>
-                    <div class="rating-bar-innovative">
-                        <span class="rating-label"><?= htmlspecialchars($r['name']) ?></span>
-                        <div class="rating-track-innovative">
-                            <?php
-                                $totalVotes = ($r['boring'] ?? 0) + ($r['interesting'] ?? 0) + ($r['great'] ?? 0);
-                                $total = $totalVotes > 0 ? $totalVotes : 1;
-                                $boringPct = ($r['boring'] ?? 0) / $total * 100;
-                                $interestingPct = ($r['interesting'] ?? 0) / $total * 100;
-                                $greatPct = ($r['great'] ?? 0) / $total * 100;
-                            ?>
+                    <?php
+                        $totalVotes = ($r['boring'] ?? 0) + ($r['interesting'] ?? 0) + ($r['great'] ?? 0);
+                        $total = $totalVotes > 0 ? $totalVotes : 1;
+                        $boringPct = ($r['boring'] ?? 0) / $total * 100;
+                        $interestingPct = ($r['interesting'] ?? 0) / $total * 100;
+                        $greatPct = ($r['great'] ?? 0) / $total * 100;
+                    ?>
+                    <div style="margin-bottom: 1.2rem;">
+                        <span class="rating-label" style="display:block; margin-bottom:0.3rem;">
+                            <?= htmlspecialchars($r['name']) ?>
+                        </span>
+
+                        <div class="app-rating-track-innovative">
                             <div class="fill-boring" style="width: <?= $boringPct ?>%;"></div>
                             <div class="fill-interesting" style="width: <?= $interestingPct ?>%;"></div>
                             <div class="fill-great" style="width: <?= $greatPct ?>%;"></div>
                         </div>
-                        <!-- AGREGADO: porcentaje y total de votos como texto, no solo
-                             el color de la barra. Con pocos votos (ej. 1 solo "aburrido")
-                             la barra sola se veía 100% roja sin contexto de cuántos
-                             votaron en total; ahora queda explícito. -->
+
                         <?php if ($totalVotes > 0): ?>
                             <div class="rating-pct-breakdown">
                                 <span class="pct-item pct-boring">Aburrido: <?= $r['boring'] ?? 0 ?> (<?= number_format($boringPct, 0) ?>%)</span>
@@ -454,11 +383,6 @@
                         <?php endif; ?>
                     </div>
                 <?php endforeach; ?>
-                <div class="rating-legend-innovative">
-                    <span class="legend-item"><span class="dot dot-boring"></span>Aburrido</span>
-                    <span class="legend-item"><span class="dot dot-interesting"></span>Interesante</span>
-                    <span class="legend-item"><span class="dot dot-great"></span>Genial</span>
-                </div>
             <?php else: ?>
                 <p class="text-gray-innovative text-center" style="padding: 1rem 0; font-family: var(--font-display);">
                     <i class="bi bi-emoji-smile me-1"></i> No hay calificaciones aún.

@@ -23,6 +23,14 @@ class User extends Model
         $this->save();
     }
 
+    public static function cedulaExists(string $cedula): bool
+    {
+        $db = Database::getInstance()->getConnection();
+        $stmt = $db->prepare("SELECT COUNT(*) FROM users WHERE cedula = :cedula LIMIT 1");
+        $stmt->execute(['cedula' => $cedula]);
+        return (bool)$stmt->fetch();
+    }
+
     /**
      * Ranking global de jugadores por puntos totales. En caso de empate,
      * desempata por quién alcanzó ese puntaje primero (updated_at más
