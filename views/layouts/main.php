@@ -389,6 +389,7 @@
                                 <li><a class="dropdown-item" href="<?= APP_URL ?>/admin/questions"><i class="bi bi-question-circle"></i>Preguntas</a></li>
                                 <li><a class="dropdown-item" href="<?= APP_URL ?>/admin/prizes"><i class="bi bi-trophy"></i>Premios</a></li>
                                 <li><a class="dropdown-item" href="<?= APP_URL ?>/admin/surveys"><i class="bi bi-clipboard-data"></i>Encuestas</a></li>
+                                <li><a class="dropdown-item" href="<?= APP_URL ?>/admin/feedback"><i class="bi bi-chat-heart"></i>Evaluación</a></li>
                                 <li><a class="dropdown-item" href="<?= APP_URL ?>/admin/qr"><i class="bi bi-qr-code"></i>Códigos QR</a></li>
                                 <?php if (($role ?? 'guest') === 'admin'): ?>
                                     <li><hr class="dropdown-divider"></li>

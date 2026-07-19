@@ -5,6 +5,7 @@ use clases\Controller;
 use clases\Session;
 use App\Models\GameSession;
 use App\Models\GameResponse;
+use App\Models\AppRating;
 use App\Services\GameService;
 
 class GameController extends Controller
@@ -22,7 +23,14 @@ class GameController extends Controller
         if (!$userId) $this->redirect('/login');
 
         $availableLevels = $this->gameService->getAvailableLevelsForUser($userId);
-        $this->render('game/select', ['levels' => $availableLevels]);
+        $hasRatedApp = AppRating::hasUserRated($userId);
+        $csrfToken = Session::csrfToken();
+
+        $this->render('game/select', [
+            'levels' => $availableLevels,
+            'hasRatedApp' => $hasRatedApp,
+            'csrfToken' => $csrfToken
+        ]);
     }
 
     public function start($themeLevelId)

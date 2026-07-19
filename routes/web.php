@@ -88,6 +88,11 @@ $router->get('/admin/surveys/edit/{id}', 'SurveyController', 'edit');
 $router->post('/admin/surveys/update/{id}', 'SurveyController', 'update');
 $router->post('/admin/surveys/delete/{id}', 'SurveyController', 'delete');
 
+//Admin Feedback
+$router->post('/feedback/rate-app', 'FeedbackController', 'rateApp');
+$router->post('/feedback/suggest-theme', 'FeedbackController', 'suggestTheme');
+$router->get('/admin/feedback', 'FeedbackController', 'adminIndex');
+
 // Landing pública
 $router->get('/', 'LandingController', 'index');
 $router->get('/about', 'LandingController', 'about');

@@ -369,6 +369,41 @@
     </div>
 </div>
 
+<div class="row mt-4">
+    <div class="col-12">
+        <div class="game-mode-card-innovative" style="text-align:left;">
+            <?php if (!$hasRatedApp): ?>
+                <h5 style="margin-bottom:0.3rem;"><i class="bi bi-chat-heart me-1"></i>¿Qué te pareció la aplicación?</h5>
+                <div class="level-name" style="margin-bottom:1rem;">Tu opinión general nos ayuda a mejorar</div>
+
+                <div class="rating-buttons" id="appRatingButtons" style="justify-content:flex-start; margin-bottom:1.2rem;">
+                    <button type="button" class="btn-rating-innovative great app-rate-btn" data-rating="mucho">Mucho</button>
+                    <button type="button" class="btn-rating-innovative interesting app-rate-btn" data-rating="bastante">Bastante</button>
+                    <button type="button" class="btn-rating-innovative interesting app-rate-btn" data-rating="regular">Regular</button>
+                    <button type="button" class="btn-rating-innovative boring app-rate-btn" data-rating="medio">Medio</button>
+                </div>
+                <div id="appRatingThanks" style="display:none; font-family: var(--font-display); color:#16a34a; font-weight:700; margin-bottom:1rem;">
+                    <i class="bi bi-check-circle me-1"></i>Gracias por tu calificación
+                </div>
+            <?php else: ?>
+                <h5 style="margin-bottom:1rem;"><i class="bi bi-check-circle me-1" style="color:#16a34a;"></i>Ya calificaste la aplicación. ¡Gracias!</h5>
+            <?php endif; ?>
+
+            <h5 style="margin-bottom:0.3rem;"><i class="bi bi-lightbulb me-1"></i>¿Qué tema te gustaría que agreguemos?</h5>
+            <div class="level-name" style="margin-bottom:0.8rem;">Cuéntanos, tu sugerencia es privada y solo la ve el equipo</div>
+            <form id="suggestionForm">
+                <textarea id="suggestionInput" class="form-control" rows="2" placeholder="Ej. Python, bases de datos, HTML/CSS..." style="border:2px solid var(--border-dark); border-radius:0; font-family: var(--font-display); margin-bottom:0.6rem;"></textarea>
+                <button type="submit" class="btn-mode-innovative" style="margin-bottom:0;">
+                    <i class="bi bi-send me-1"></i>Enviar sugerencia
+                </button>
+                <span id="suggestionThanks" style="display:none; font-family: var(--font-display); color:#16a34a; font-weight:700; margin-left:0.8rem;">
+                    <i class="bi bi-check-circle me-1"></i>¡Gracias por tu idea!
+                </span>
+            </form>
+        </div>
+    </div>
+</div>
+
 <hr class="divider-innovative">
 
 <div class="text-center" style="font-family: var(--font-mono); font-size: 0.7rem; color: var(--text-light);">
@@ -425,5 +460,57 @@ document.querySelectorAll('.rate-btn').forEach(btn => {
             });
         });
     });
+});
+
+document.querySelectorAll('.app-rate-btn').forEach(btn => {
+    btn.addEventListener('click', function() {
+        const rating = this.dataset.rating;
+        document.querySelectorAll('.app-rate-btn').forEach(b => b.disabled = true);
+
+        fetch('<?= APP_URL ?>/feedback/rate-app', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
+            body: 'rating=' + rating + '&csrf_token=<?= urlencode($csrfToken) ?>'
+        })
+        .then(res => res.json())
+        .then(data => {
+            if (data.success) {
+                document.getElementById('appRatingButtons').style.display = 'none';
+                document.getElementById('appRatingThanks').style.display = 'block';
+            } else {
+                alert(data.error || 'Error al calificar');
+                document.querySelectorAll('.app-rate-btn').forEach(b => b.disabled = false);
+            }
+        })
+        .catch(() => {
+            alert('Error de conexión');
+            document.querySelectorAll('.app-rate-btn').forEach(b => b.disabled = false);
+        });
+    });
+});
+
+document.getElementById('suggestionForm').addEventListener('submit', function(e) {
+    e.preventDefault();
+    const text = document.getElementById('suggestionInput').value.trim();
+    if (!text) return;
+
+    fetch('<?= APP_URL ?>/feedback/suggest-theme', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
+        body: 'suggestion=' + encodeURIComponent(text) + '&csrf_token=<?= urlencode($csrfToken) ?>'
+    })
+    .then(res => res.json())
+    .then(data => {
+        if (data.success) {
+            document.getElementById('suggestionInput').value = '';
+            document.getElementById('suggestionThanks').style.display = 'inline';
+            setTimeout(() => {
+                document.getElementById('suggestionThanks').style.display = 'none';
+            }, 3000);
+        } else {
+            alert(data.error || 'Error al enviar');
+        }
+    })
+    .catch(() => alert('Error de conexión'));
 });
 </script>

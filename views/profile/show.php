@@ -144,12 +144,15 @@
         background: var(--primary-lighter);
         border: 2px solid var(--border-dark);
         transition: all 0.2s ease;
+        position: relative;
+        cursor: help;
     }
 
     .prize-item-innovative:hover {
         transform: translate(-2px, -2px);
         box-shadow: 4px 4px 0px var(--border-dark);
         background: var(--primary-light);
+        z-index: 5;
     }
 
     .prize-item-innovative img {
@@ -165,6 +168,55 @@
         margin-top: 0.3rem;
         display: block;
         font-weight: 600;
+    }
+
+    .prize-item-innovative .prize-tooltip {
+        position: absolute;
+        bottom: calc(100% + 10px);
+        left: 50%;
+        transform: translateX(-50%) translateY(4px);
+        background: var(--bg-card);
+        border: 2px solid var(--border-dark);
+        box-shadow: 4px 4px 0px var(--border-dark);
+        padding: 0.6rem 0.9rem;
+        font-family: var(--font-display);
+        font-size: 0.75rem;
+        color: var(--text-dark);
+        width: 180px;
+        text-align: left;
+        line-height: 1.3;
+        opacity: 0;
+        visibility: hidden;
+        pointer-events: none;
+        transition: opacity 0.15s ease, transform 0.15s ease;
+        z-index: 10;
+    }
+
+    .prize-item-innovative .prize-tooltip::after {
+        content: '';
+        position: absolute;
+        top: 100%;
+        left: 50%;
+        transform: translateX(-50%);
+        border: 6px solid transparent;
+        border-top-color: var(--border-dark);
+    }
+
+    .prize-item-innovative .prize-tooltip::before {
+        content: '';
+        position: absolute;
+        top: calc(100% - 2px);
+        left: 50%;
+        transform: translateX(-50%);
+        border: 5px solid transparent;
+        border-top-color: var(--bg-card);
+        z-index: 1;
+    }
+
+    .prize-item-innovative:hover .prize-tooltip {
+        opacity: 1;
+        visibility: visible;
+        transform: translateX(-50%) translateY(0);
     }
 
     .progress-list-innovative .progress-item {
@@ -219,7 +271,6 @@
         text-align: right;
     }
 
-    /* ====== MODAL AVATARES ====== */
     .avatar-modal-content {
         border: 3px solid var(--border-dark);
         border-radius: 0;
@@ -303,6 +354,10 @@
         .profile-info-item-innovative .value {
             font-size: 0.95rem;
         }
+        .prize-item-innovative .prize-tooltip {
+            width: 140px;
+            font-size: 0.7rem;
+        }
     }
 </style>
 
@@ -384,6 +439,9 @@
                 <div class="prize-grid-innovative">
                     <?php foreach ($prizes as $prize): ?>
                         <div class="prize-item-innovative">
+                            <?php if (!empty($prize['description'])): ?>
+                                <div class="prize-tooltip"><?= htmlspecialchars($prize['description']) ?></div>
+                            <?php endif; ?>
                             <img src="<?= APP_URL ?>/images/prizes/<?= $prize['image'] ?? 'default.png' ?>" alt="<?= htmlspecialchars($prize['name']) ?>">
                             <span class="prize-name"><?= htmlspecialchars($prize['name']) ?></span>
                         </div>
@@ -398,7 +456,6 @@
     </div>
 </div>
 
-<!-- ====== MODAL: CAMBIAR AVATAR ====== -->
 <div class="modal fade" id="avatarModal" tabindex="-1" aria-hidden="true">
     <div class="modal-dialog modal-lg modal-dialog-scrollable">
         <div class="modal-content avatar-modal-content">

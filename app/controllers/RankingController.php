@@ -10,7 +10,7 @@ use App\Models\ThemeLevel;
 /**
  * Nueva funcionalidad pedida por la rúbrica actualizada: "el jugador
  * puede ver el avance de otros jugadores, y ver su posición frente a
- * temass comunes que hayan jugado otros jugadores".
+ * temas comunes que hayan jugado otros jugadores".
  */
 class RankingController extends Controller
 {
