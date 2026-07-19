@@ -9,6 +9,29 @@ class UserLevelProgress extends Model
     protected static string $table = 'user_level_progress';
     protected static string $primaryKey = 'user_id';
 
+    /**
+     * Mapa theme_level_id => ['score_percentage' => ..., 'completed' => ...]
+     * del usuario, para poder mostrar en la selección de juego qué tema-
+     * nivel ya se superó al 100% (insignia de estrella).
+     */
+    public static function scoresForUser(int $userId): array
+    {
+        $db = Database::getInstance()->getConnection();
+        $stmt = $db->prepare(
+            "SELECT theme_level_id, score_percentage, completed
+             FROM user_level_progress WHERE user_id = :uid"
+        );
+        $stmt->execute(['uid' => $userId]);
+        $result = [];
+        foreach ($stmt->fetchAll() as $row) {
+            $result[(int)$row['theme_level_id']] = [
+                'score_percentage' => (float)$row['score_percentage'],
+                'completed' => (int)$row['completed'] === 1
+            ];
+        }
+        return $result;
+    }
+
     public static function byUser(int $userId): array
     {
         $db = Database::getInstance()->getConnection();

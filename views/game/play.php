@@ -191,6 +191,35 @@
         color: white !important;
     }
 
+    /* AGREGADO: botón "Siguiente pregunta" para el flujo de una pregunta
+       a la vez (antes se mostraban todas juntas en un solo formulario) */
+    .btn-next-question {
+        background: var(--primary);
+        color: white !important;
+        font-family: var(--font-display);
+        font-weight: 700;
+        padding: 0.85rem 2.5rem;
+        font-size: 1rem;
+        border: 3px solid var(--border-dark);
+        transition: all 0.15s ease;
+        text-transform: uppercase;
+        letter-spacing: 1px;
+        box-shadow: 6px 6px 0px var(--border-dark);
+        width: 100%;
+    }
+
+    .btn-next-question:hover:not(:disabled) {
+        transform: translate(-3px, -3px);
+        box-shadow: 9px 9px 0px var(--border-dark);
+        color: white !important;
+    }
+
+    .btn-next-question:disabled {
+        opacity: 0.4;
+        cursor: not-allowed;
+        box-shadow: 4px 4px 0px var(--border-dark);
+    }
+
     .progress-bar-innovative {
         background: var(--bg-card);
         border: 3px solid var(--border-dark);
@@ -278,7 +307,10 @@
 
 <?php
 $totalQuestions = count($questions ?? []);
-$currentQuestion = 0; // Esto debería venir del controlador
+// El índice inicial siempre es 0 (primera pregunta); a partir de aquí todo
+// el avance (índice actual, % de progreso, contador) lo maneja el JS de
+// abajo, ya que ahora se muestra una pregunta a la vez.
+$currentQuestion = 0;
 $progress = $totalQuestions > 0 ? round((($currentQuestion + 1) / $totalQuestions) * 100) : 0;
 ?>
 
@@ -290,7 +322,7 @@ $progress = $totalQuestions > 0 ? round((($currentQuestion + 1) / $totalQuestion
                 Sesión: <span>#<?= $session->id ?? 'N/A' ?></span>
             </div>
         </div>
-        <div class="question-counter">
+        <div class="question-counter" id="questionCounter">
             <i class="bi bi-question-circle me-1"></i>
             <?= ($currentQuestion + 1) ?> / <?= $totalQuestions ?>
         </div>
@@ -301,10 +333,10 @@ $progress = $totalQuestions > 0 ? round((($currentQuestion + 1) / $totalQuestion
 <div class="progress-bar-innovative">
     <span class="progress-text">
         <i class="bi bi-arrow-right-short me-1"></i>
-        Progreso: <strong><?= $progress ?>%</strong>
+        Progreso: <strong id="progressPct"><?= $progress ?>%</strong>
     </span>
     <div class="progress-track-innovative">
-        <div class="progress-fill" style="width: <?= $progress ?>%;"></div>
+        <div class="progress-fill" id="progressFill" style="width: <?= $progress ?>%;"></div>
     </div>
 </div>
 
@@ -312,7 +344,10 @@ $progress = $totalQuestions > 0 ? round((($currentQuestion + 1) / $totalQuestion
     <input type="hidden" name="csrf_token" value="<?= $csrfToken ?>">
 
     <?php foreach ($questions as $index => $question): ?>
-        <div class="question-card-innovative">
+        <div class="question-card-innovative"
+             data-qindex="<?= $index ?>"
+             data-qid="<?= $question->id ?>"
+             style="<?= $index === 0 ? '' : 'display:none;' ?>">
             <span class="q-number">
                 <i class="bi bi-hash"></i> Pregunta <?= $index + 1 ?> de <?= $totalQuestions ?>
             </span>
@@ -346,35 +381,71 @@ $progress = $totalQuestions > 0 ? round((($currentQuestion + 1) / $totalQuestion
             <?php endif; ?>
 
             <input type="hidden" name="times[<?= $question->id ?>]" class="response-time" value="0">
+
+            <!-- AGREGADO: navegación de a una pregunta por vez. La última
+                 pregunta muestra el botón de enviar; las demás, "Siguiente". -->
+            <?php if ($index < $totalQuestions - 1): ?>
+                <button type="button" class="btn btn-next-question" disabled>
+                    Siguiente pregunta <i class="bi bi-arrow-right ms-1"></i>
+                </button>
+            <?php else: ?>
+                <button type="submit" class="btn btn-submit-innovative" disabled>
+                    <i class="bi bi-check2-circle me-2"></i>Enviar respuestas
+                </button>
+            <?php endif; ?>
         </div>
     <?php endforeach; ?>
-
-    <button type="submit" class="btn btn-submit-innovative">
-        <i class="bi bi-check2-circle me-2"></i>Enviar respuestas
-    </button>
 </form>
 
 <script>
+    const totalQuestions = <?= $totalQuestions ?>;
+    const questionCards = Array.from(document.querySelectorAll('.question-card-innovative'));
+    // AGREGADO: el tiempo de cada pregunta ahora se mide desde el momento
+    // en que esa pregunta se MUESTRA en pantalla, no desde que cargó la
+    // página completa (antes todas las preguntas estaban visibles a la vez,
+    // así que "tiempo de respuesta" de la pregunta 5 en realidad incluía el
+    // tiempo de leer y responder las 4 anteriores también).
+    const questionStartTimes = {};
+
+    function showQuestion(index) {
+        questionCards.forEach((card, i) => {
+            card.style.display = (i === index) ? '' : 'none';
+        });
+
+        const qId = questionCards[index].dataset.qid;
+        questionStartTimes[qId] = Date.now();
+
+        const progress = Math.round(((index + 1) / totalQuestions) * 100);
+        document.getElementById('progressPct').textContent = progress + '%';
+        document.getElementById('progressFill').style.width = progress + '%';
+        document.getElementById('questionCounter').innerHTML =
+            '<i class="bi bi-question-circle me-1"></i>' + (index + 1) + ' / ' + totalQuestions;
+    }
+
     document.querySelectorAll('.option-item-innovative input[type="radio"]').forEach(input => {
         const questionId = input.name.match(/\[(.*?)\]/)[1];
         const timeField = document.querySelector(`input[name="times[${questionId}]"]`);
-        const start = Date.now();
 
-        // BUG CORREGIDO: antes había un segundo listener en 'click' que
-        // recalculaba el tiempo Y ADEMÁS reiniciaba "start" a Date.now().
-        // Como 'click' se dispara justo antes que 'change' en un radio
-        // button, el 'change' terminaba calculando el tiempo contra un
-        // "start" que se acababa de resetear un instante antes, dando
-        // ~0 ms siempre. Por eso todos los tiempos de respuesta guardados
-        // en game_responses.response_time_ms eran 0 y el promedio en
-        // Estadísticas salía en blanco/0. Ahora "start" se fija una sola
-        // vez (cuando se muestra la pregunta) y nunca se reinicia: el
-        // tiempo de respuesta es correctamente el tiempo desde que se
-        // mostró la pregunta hasta que se eligió (o cambió) la respuesta.
         input.addEventListener('change', () => {
-            if (timeField) {
-                timeField.value = Date.now() - start;
+            if (timeField && questionStartTimes[questionId]) {
+                timeField.value = Date.now() - questionStartTimes[questionId];
             }
+            // Habilitar el botón (Siguiente o Enviar) de esta pregunta apenas se elige una respuesta
+            const card = input.closest('.question-card-innovative');
+            const advanceBtn = card.querySelector('.btn-next-question, .btn-submit-innovative');
+            if (advanceBtn) advanceBtn.disabled = false;
         });
     });
+
+    document.querySelectorAll('.btn-next-question').forEach(btn => {
+        btn.addEventListener('click', () => {
+            const card = btn.closest('.question-card-innovative');
+            const currentIndex = parseInt(card.dataset.qindex, 10);
+            showQuestion(currentIndex + 1);
+            window.scrollTo({ top: card.offsetTop - 20, behavior: 'smooth' });
+        });
+    });
+
+    // Arrancar en la primera pregunta (esto también dispara el cronómetro de la pregunta 1)
+    showQuestion(0);
 </script>

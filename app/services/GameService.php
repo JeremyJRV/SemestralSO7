@@ -148,6 +148,31 @@ class GameService
         $session = GameSession::find($sessionId);
         $themeLevelId = $session->theme_level_id;
 
+        // BUG CORREGIDO: antes este UPDATE sobreescribía SIEMPRE
+        // score_percentage y completed con el resultado del intento más
+        // reciente, sin importar si era peor que un intento anterior. Si
+        // alguien ya había sacado 100% y volvía a jugar el mismo tema-nivel
+        // sacando menos (ej. 80%, que sigue aprobando pero es menor a 100),
+        // el 100% se perdía. Peor aún: si el nuevo intento quedaba por
+        // debajo del 80% de aprobación, "completed" pasaba de 1 a 0,
+        // ocultando de golpe el siguiente nivel que ya estaba desbloqueado
+        // (getAvailableLevelsForUser/isLevelUnlocked dependen de ese flag).
+        //
+        // Ahora se conserva el MEJOR puntaje histórico, y una vez que un
+        // nivel queda "completed", jugarlo de nuevo y sacar menos NUNCA lo
+        // vuelve a bloquear (cada intento sigue quedando registrado en
+        // game_responses para las estadísticas de tiempo, solo cambia este
+        // resumen de progreso).
+        $existing = $db->prepare(
+            "SELECT score_percentage, completed FROM user_level_progress
+             WHERE user_id = :uid AND theme_level_id = :tlid"
+        );
+        $existing->execute(['uid' => $userId, 'tlid' => $themeLevelId]);
+        $previous = $existing->fetch();
+
+        $bestPercentage = $previous ? max((float)$previous['score_percentage'], $percentage) : $percentage;
+        $everCompleted = ($previous && (int)$previous['completed'] === 1) || $percentage >= 80;
+
         $db->prepare(
             "INSERT INTO user_level_progress (user_id, theme_level_id, score_percentage, completed)
              VALUES (:uid, :tlid, :score, :comp)
@@ -155,10 +180,10 @@ class GameService
         )->execute([
             'uid' => $userId,
             'tlid' => $themeLevelId,
-            'score' => $percentage,
-            'comp' => $percentage >= 80 ? 1 : 0,
-            'score2' => $percentage,
-            'comp2' => $percentage >= 80 ? 1 : 0
+            'score' => $bestPercentage,
+            'comp' => $everCompleted ? 1 : 0,
+            'score2' => $bestPercentage,
+            'comp2' => $everCompleted ? 1 : 0
         ]);
 
         $prizesAwarded = [];

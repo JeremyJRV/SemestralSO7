@@ -7,6 +7,7 @@ use App\Models\Theme;
 use App\Models\UserThemeRating;
 use App\Models\GameSession;
 use App\Models\GameResponse;
+use App\Models\AppRating;
 
 class StatisticsController extends Controller
 {
@@ -14,6 +15,12 @@ class StatisticsController extends Controller
     {
         $mostPlayedThemes = Theme::mostPlayed(); // query SQL
         $averageRatings = UserThemeRating::averageRatings();
+
+        // AGREGADO: la valoración general de la app (mucho/bastante/regular/
+        // medio) vivía solo en /admin/feedback; ahora también se muestra
+        // aquí, junto a la de temas, ya que ambas son estadísticas "del
+        // sistema" y tiene sentido verlas juntas.
+        $appRatingStats = AppRating::stats();
 
         // Tiempo promedio de respuesta por pregunta (faltaba)
         $avgTimePerQuestion = GameResponse::averageTimePerQuestion();
@@ -36,6 +43,7 @@ class StatisticsController extends Controller
         $this->render('statistics/index', [
             'mostPlayed' => $mostPlayedThemes,
             'ratings' => $averageRatings,
+            'appRatingStats' => $appRatingStats,
             'avgTimePerQuestion' => $avgTimePerQuestion,
             'overallAvgTime' => $overallAvgTime,
             'myAvgTimePerQuestion' => $myAvgTimePerQuestion,

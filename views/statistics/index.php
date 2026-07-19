@@ -184,6 +184,46 @@
     .dot-interesting { background: #fbbf24; }
     .dot-great { background: #34d399; }
 
+    /* AGREGADO: desglose en texto de % y total de votos por tema */
+    .rating-pct-breakdown {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 0.5rem 0.9rem;
+        font-family: var(--font-display);
+        font-size: 0.72rem;
+        color: var(--text-gray, #6b7280);
+        margin-top: 0.35rem;
+    }
+    .rating-pct-breakdown .pct-item.pct-boring { color: #f87171; }
+    .rating-pct-breakdown .pct-item.pct-interesting { color: #d1a02e; }
+    .rating-pct-breakdown .pct-item.pct-great { color: #22a876; }
+    .rating-pct-breakdown .pct-total {
+        font-weight: 700;
+        margin-left: auto;
+    }
+
+    /* Barra de valoración de la app — MISMO componente visual que en
+       views/admin/feedback.php. Se repite aquí porque cada vista trae su
+       propio <style> (ver pendiente #4 de DRY: mover estos bloques
+       compartidos a un solo CSS incluido en el layout). */
+    .app-rating-track-innovative {
+        display: flex;
+        width: 100%;
+        height: 1.4rem;
+        border-radius: 999px;
+        overflow: hidden;
+        background: var(--border-light, #e5e7eb);
+        margin-bottom: 0.6rem;
+    }
+    .app-rating-track-innovative > div {
+        height: 100%;
+        transition: width 0.4s ease;
+    }
+    .app-rating-track-innovative .fill-mucho { background: #34d399; }
+    .app-rating-track-innovative .fill-bastante { background: #60a5fa; }
+    .app-rating-track-innovative .fill-regular { background: #fbbf24; }
+    .app-rating-track-innovative .fill-medio { background: #f87171; }
+
     .divider-innovative {
         border: none;
         border-top: 3px solid var(--border-dark);
@@ -338,6 +378,44 @@
         </div>
     </div>
 
+    <!-- AGREGADO: valoración general de la aplicación (mucho/bastante/
+         regular/medio), misma barra que en /admin/feedback, para que se
+         vea junto a la de temas ya que ambas son "del sistema". -->
+    <div class="col-md-6">
+        <div class="stat-card-stats-innovative">
+            <h5><i class="bi bi-emoji-smile"></i>Valoración de la aplicación</h5>
+            <?php
+                $totalAppVotesStats = array_sum($appRatingStats ?? []);
+            ?>
+            <?php if ($totalAppVotesStats > 0): ?>
+                <?php
+                    $barTotalStats = $totalAppVotesStats;
+                    $muchoPctS = ($appRatingStats['mucho'] ?? 0) / $barTotalStats * 100;
+                    $bastantePctS = ($appRatingStats['bastante'] ?? 0) / $barTotalStats * 100;
+                    $regularPctS = ($appRatingStats['regular'] ?? 0) / $barTotalStats * 100;
+                    $medioPctS = ($appRatingStats['medio'] ?? 0) / $barTotalStats * 100;
+                ?>
+                <div class="app-rating-track-innovative">
+                    <div class="fill-mucho" style="width: <?= $muchoPctS ?>%;"></div>
+                    <div class="fill-bastante" style="width: <?= $bastantePctS ?>%;"></div>
+                    <div class="fill-regular" style="width: <?= $regularPctS ?>%;"></div>
+                    <div class="fill-medio" style="width: <?= $medioPctS ?>%;"></div>
+                </div>
+                <div class="rating-pct-breakdown">
+                    <span class="pct-item pct-great">Mucho: <?= $appRatingStats['mucho'] ?? 0 ?> (<?= number_format($muchoPctS, 0) ?>%)</span>
+                    <span class="pct-item">Bastante: <?= $appRatingStats['bastante'] ?? 0 ?> (<?= number_format($bastantePctS, 0) ?>%)</span>
+                    <span class="pct-item pct-interesting">Regular: <?= $appRatingStats['regular'] ?? 0 ?> (<?= number_format($regularPctS, 0) ?>%)</span>
+                    <span class="pct-item pct-boring">Medio: <?= $appRatingStats['medio'] ?? 0 ?> (<?= number_format($medioPctS, 0) ?>%)</span>
+                    <span class="pct-total"><?= $totalAppVotesStats ?> voto<?= $totalAppVotesStats === 1 ? '' : 's' ?> en total</span>
+                </div>
+            <?php else: ?>
+                <p class="text-gray-innovative text-center" style="padding: 1rem 0; font-family: var(--font-display);">
+                    <i class="bi bi-emoji-neutral me-1"></i> Nadie ha calificado la aplicación todavía.
+                </p>
+            <?php endif; ?>
+        </div>
+    </div>
+
     <!-- Calificaciones -->
     <div class="col-md-6">
         <div class="stat-card-stats-innovative">
@@ -348,8 +426,8 @@
                         <span class="rating-label"><?= htmlspecialchars($r['name']) ?></span>
                         <div class="rating-track-innovative">
                             <?php
-                                $total = ($r['boring'] ?? 0) + ($r['interesting'] ?? 0) + ($r['great'] ?? 0);
-                                $total = $total > 0 ? $total : 1;
+                                $totalVotes = ($r['boring'] ?? 0) + ($r['interesting'] ?? 0) + ($r['great'] ?? 0);
+                                $total = $totalVotes > 0 ? $totalVotes : 1;
                                 $boringPct = ($r['boring'] ?? 0) / $total * 100;
                                 $interestingPct = ($r['interesting'] ?? 0) / $total * 100;
                                 $greatPct = ($r['great'] ?? 0) / $total * 100;
@@ -358,6 +436,22 @@
                             <div class="fill-interesting" style="width: <?= $interestingPct ?>%;"></div>
                             <div class="fill-great" style="width: <?= $greatPct ?>%;"></div>
                         </div>
+                        <!-- AGREGADO: porcentaje y total de votos como texto, no solo
+                             el color de la barra. Con pocos votos (ej. 1 solo "aburrido")
+                             la barra sola se veía 100% roja sin contexto de cuántos
+                             votaron en total; ahora queda explícito. -->
+                        <?php if ($totalVotes > 0): ?>
+                            <div class="rating-pct-breakdown">
+                                <span class="pct-item pct-boring">Aburrido: <?= $r['boring'] ?? 0 ?> (<?= number_format($boringPct, 0) ?>%)</span>
+                                <span class="pct-item pct-interesting">Interesante: <?= $r['interesting'] ?? 0 ?> (<?= number_format($interestingPct, 0) ?>%)</span>
+                                <span class="pct-item pct-great">Genial: <?= $r['great'] ?? 0 ?> (<?= number_format($greatPct, 0) ?>%)</span>
+                                <span class="pct-total"><?= $totalVotes ?> voto<?= $totalVotes === 1 ? '' : 's' ?> en total</span>
+                            </div>
+                        <?php else: ?>
+                            <div class="rating-pct-breakdown">
+                                <span class="pct-total">Sin votos todavía</span>
+                            </div>
+                        <?php endif; ?>
                     </div>
                 <?php endforeach; ?>
                 <div class="rating-legend-innovative">

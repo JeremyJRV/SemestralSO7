@@ -69,6 +69,27 @@
         transform: rotate(-2deg);
     }
 
+    /* AGREGADO: insignia de "100% superado" en la esquina superior derecha
+       de la tarjeta, para dar feedback claro de que ese tema-nivel ya se
+       dominó por completo (no solo aprobado con 80%+). */
+    .game-mode-card-innovative .mastered-star-badge {
+        position: absolute;
+        top: -10px;
+        right: -10px;
+        width: 34px;
+        height: 34px;
+        background: #fbbf24;
+        border: 3px solid var(--border-dark);
+        border-radius: 50%;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-size: 1rem;
+        color: white;
+        transform: rotate(8deg);
+        box-shadow: 3px 3px 0px var(--border-dark);
+    }
+
     .game-mode-card-innovative .mode-icon {
         width: 64px;
         height: 64px;
@@ -312,6 +333,15 @@
         <div class="col-md-4 col-lg-3">
             <div class="game-mode-card-innovative">
                 <span class="corner-num">▶</span>
+                <?php
+                    $myScore = $myScores[$tl['id']] ?? null;
+                    $isMastered = $myScore && (float)$myScore['score_percentage'] >= 100;
+                ?>
+                <?php if ($isMastered): ?>
+                    <span class="mastered-star-badge" title="¡Superado al 100%!">
+                        <i class="bi bi-star-fill"></i>
+                    </span>
+                <?php endif; ?>
                 <div class="mode-icon">
                     <i class="bi bi-layers"></i>
                 </div>
