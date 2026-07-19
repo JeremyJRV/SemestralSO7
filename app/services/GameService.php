@@ -96,7 +96,6 @@ class GameService
         $correctCount = 0;
         $totalQuestions = count($answers);
         $totalTime = 0;
-        $pointsEarned = 0;
 
         foreach ($answers as $questionId => $response) {
             $question = Question::find($questionId);
@@ -148,21 +147,16 @@ class GameService
         $session = GameSession::find($sessionId);
         $themeLevelId = $session->theme_level_id;
 
-        // BUG CORREGIDO: antes este UPDATE sobreescribía SIEMPRE
-        // score_percentage y completed con el resultado del intento más
-        // reciente, sin importar si era peor que un intento anterior. Si
-        // alguien ya había sacado 100% y volvía a jugar el mismo tema-nivel
-        // sacando menos (ej. 80%, que sigue aprobando pero es menor a 100),
-        // el 100% se perdía. Peor aún: si el nuevo intento quedaba por
-        // debajo del 80% de aprobación, "completed" pasaba de 1 a 0,
-        // ocultando de golpe el siguiente nivel que ya estaba desbloqueado
-        // (getAvailableLevelsForUser/isLevelUnlocked dependen de ese flag).
+        // Se conserva el MEJOR puntaje histórico (score_percentage) para
+        // no volver a bloquear un nivel ya desbloqueado si el usuario
+        // repite el tema-nivel y saca menos.
         //
-        // Ahora se conserva el MEJOR puntaje histórico, y una vez que un
-        // nivel queda "completed", jugarlo de nuevo y sacar menos NUNCA lo
-        // vuelve a bloquear (cada intento sigue quedando registrado en
-        // game_responses para las estadísticas de tiempo, solo cambia este
-        // resumen de progreso).
+        // Además de ese porcentaje (que sirve para desbloquear niveles y
+        // para la insignia de "completado"), ahora se acumulan los PUNTOS
+        // ganados en cada intento de este tema-nivel específico (columna
+        // `points`). El ranking por tema-nivel usa estos puntos
+        // acumulados en vez del porcentaje, así jugar más veces siempre
+        // suma y la competencia queda abierta para todos.
         $existing = $db->prepare(
             "SELECT score_percentage, completed FROM user_level_progress
              WHERE user_id = :uid AND theme_level_id = :tlid"
@@ -173,17 +167,24 @@ class GameService
         $bestPercentage = $previous ? max((float)$previous['score_percentage'], $percentage) : $percentage;
         $everCompleted = ($previous && (int)$previous['completed'] === 1) || $percentage >= 80;
 
+        $pointsEarned = $correctCount * 10;
+
         $db->prepare(
-            "INSERT INTO user_level_progress (user_id, theme_level_id, score_percentage, completed)
-             VALUES (:uid, :tlid, :score, :comp)
-             ON DUPLICATE KEY UPDATE score_percentage = :score2, completed = :comp2"
+            "INSERT INTO user_level_progress (user_id, theme_level_id, score_percentage, completed, points)
+             VALUES (:uid, :tlid, :score, :comp, :pts)
+             ON DUPLICATE KEY UPDATE
+                score_percentage = :score2,
+                completed = :comp2,
+                points = points + :pts2"
         )->execute([
             'uid' => $userId,
             'tlid' => $themeLevelId,
             'score' => $bestPercentage,
             'comp' => $everCompleted ? 1 : 0,
+            'pts' => $pointsEarned,
             'score2' => $bestPercentage,
-            'comp2' => $everCompleted ? 1 : 0
+            'comp2' => $everCompleted ? 1 : 0,
+            'pts2' => $pointsEarned
         ]);
 
         $prizesAwarded = [];
@@ -193,7 +194,6 @@ class GameService
 
         $user = User::find($userId);
         if ($user) {
-            $pointsEarned = $correctCount * 10;
             $user->addPoints($pointsEarned);
         }
 

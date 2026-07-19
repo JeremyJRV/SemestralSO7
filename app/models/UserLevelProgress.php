@@ -168,21 +168,21 @@ class UserLevelProgress extends Model
 
     /**
      * Ranking de jugadores para un tema-nivel específico, ordenado por
-     * porcentaje de acierto y, en empate, por quién lo completó primero.
-     * Solo incluye usuarios con role='player' -- admins y armadores no
-     * son jugadores y no deben aparecer en ningún ranking, igual que ya
-     * pasa en el ranking global (User::topByPoints).
+     * PUNTOS acumulados en ese tema-nivel (permite que cualquiera siga
+     * escalando jugando más veces). El porcentaje se conserva solo como
+     * dato informativo de "mejor racha".
      */
     public static function rankingByThemeLevel(int $themeLevelId, int $limit = 20): array
     {
         $db = Database::getInstance()->getConnection();
         $stmt = $db->prepare(
             "SELECT u.id AS user_id, u.username, u.avatar,
-                    ulp.score_percentage, ulp.completed, ulp.attempted_at
+                    ulp.score_percentage, ulp.completed,
+                    ulp.points AS theme_level_points, ulp.attempted_at
              FROM user_level_progress ulp
              JOIN users u ON u.id = ulp.user_id
              WHERE ulp.theme_level_id = :tlid AND u.role = 'player'
-             ORDER BY ulp.score_percentage DESC, ulp.attempted_at ASC
+             ORDER BY ulp.points DESC, ulp.score_percentage DESC, ulp.attempted_at ASC
              LIMIT :lim"
         );
         $stmt->bindValue(':tlid', $themeLevelId, \PDO::PARAM_INT);
@@ -193,14 +193,14 @@ class UserLevelProgress extends Model
 
     /**
      * Posición (1-based) de un usuario en el ranking de un tema-nivel,
-     * excluyendo también a no-jugadores del conteo.
+     * ahora basada en PUNTOS acumulados (mismo criterio de rankingByThemeLevel).
      */
     public static function rankPositionForUser(int $userId, int $themeLevelId): ?int
     {
         $db = Database::getInstance()->getConnection();
 
         $ownScore = $db->prepare(
-            "SELECT score_percentage FROM user_level_progress
+            "SELECT points FROM user_level_progress
              WHERE user_id = :uid AND theme_level_id = :tlid"
         );
         $ownScore->execute(['uid' => $userId, 'tlid' => $themeLevelId]);
@@ -212,9 +212,9 @@ class UserLevelProgress extends Model
              FROM user_level_progress ulp
              JOIN users u ON u.id = ulp.user_id
              WHERE ulp.theme_level_id = :tlid AND u.role = 'player'
-             AND ulp.score_percentage > :score"
+             AND ulp.points > :points"
         );
-        $stmt->execute(['tlid' => $themeLevelId, 'score' => $own['score_percentage']]);
+        $stmt->execute(['tlid' => $themeLevelId, 'points' => $own['points']]);
         $row = $stmt->fetch();
         return (int)($row['position'] ?? 1);
     }
