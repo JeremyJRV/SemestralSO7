@@ -50,6 +50,18 @@ class QuestionController extends Controller
         $this->csrfCheck();
         $data = $_POST;
 
+        if ($data['type'] === 'multiple' && !isset($data['correct_option'])) {
+            $themeLevels = ThemeLevel::all();
+            $csrfToken = Session::csrfToken();
+            $this->render('questions/form', [
+                'csrfToken' => $csrfToken,
+                'themeLevels' => $themeLevels,
+                'question' => null,
+                'error' => 'Debes marcar cuál opción es la correcta.'
+            ]);
+            return;
+        }
+
         $question = new Question([
             'theme_level_id' => $data['theme_level_id'],
             'text' => $data['text'],
@@ -112,6 +124,20 @@ class QuestionController extends Controller
             $this->redirect('/admin/questions');
         }
 
+        if ($data['type'] === 'multiple' && !isset($data['correct_option'])) {
+            $existingOptions = Option::where('question_id', $question->id);
+            $question->options = $existingOptions;
+            $themeLevels = ThemeLevel::all();
+            $csrfToken = Session::csrfToken();
+            $this->render('questions/form', [
+                'csrfToken' => $csrfToken,
+                'themeLevels' => $themeLevels,
+                'question' => $question,
+                'error' => 'Debes marcar cuál opción es la correcta.'
+            ]);
+            return;
+        }
+
         $question->theme_level_id = $data['theme_level_id'];
         $question->text = $data['text'];
         $question->type = $data['type'];
@@ -136,14 +162,6 @@ class QuestionController extends Controller
         $this->redirect('/admin/questions');
     }
 
-    /**
-     * TEMPORAL: borra también las respuestas de jugadores asociadas a
-     * esta pregunta antes de borrar sus opciones. Permite eliminar
-     * preguntas de prueba durante desarrollo, pero pierde el detalle
-     * histórico de esa pregunta en partidas ya jugadas. Revisar antes
-     * de la entrega final si se debe reemplazar por una desactivación
-     * (campo 'active') en vez de borrado físico.
-     */
     private function deleteQuestionResponsesForQuestion(int $questionId): void
     {
         $db = Database::getInstance()->getConnection();
@@ -167,12 +185,13 @@ class QuestionController extends Controller
     private function saveOptionsForQuestion(int $questionId, array $data): void
     {
         if ($data['type'] === 'multiple') {
+            $correctOption = $data['correct_option'] ?? 0;
             foreach ($data['options'] as $index => $optionText) {
                 if (!empty($optionText)) {
                     $option = new Option([
                         'question_id' => $questionId,
                         'text' => $optionText,
-                        'is_correct' => ($data['correct_option'] == $index) ? 1 : 0
+                        'is_correct' => ($correctOption == $index) ? 1 : 0
                     ]);
                     $option->save();
                 }

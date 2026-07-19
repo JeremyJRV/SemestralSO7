@@ -295,7 +295,6 @@
             <textarea name="text" class="form-control" required placeholder="Escribe la pregunta aquí..."><?= htmlspecialchars($question->text ?? '') ?></textarea>
         </div>
 
-        <!-- Opción Múltiple -->
         <div id="multipleOptions" style="<?= (isset($question) && $question->type == 'boolean') ? 'display:none' : '' ?>">
             <label class="form-label"><i class="bi bi-list-ul me-1"></i>Opciones (marca la correcta)</label>
             <?php for ($i = 0; $i < 4; $i++):
@@ -303,14 +302,13 @@
             ?>
                 <div class="option-group">
                     <span class="option-label"><?= $letter ?></span>
-                    <input type="radio" name="correct_option" value="<?= $i ?>" class="option-radio" <?= (isset($question) && ($question->correct_option ?? -1) == $i) ? 'checked' : '' ?>>
+                    <input type="radio" name="correct_option" value="<?= $i ?>" class="option-radio" <?= (isset($question) ? (($question->correct_option ?? -1) == $i ? 'checked' : '') : ($i === 0 ? 'checked' : '')) ?>>
                     <input type="text" name="options[]" class="option-input" placeholder="Opción <?= $letter ?>" value="<?= htmlspecialchars($question->options[$i]->text ?? '') ?>">
                 </div>
             <?php endfor; ?>
             <div class="text-hint"><i class="bi bi-info-circle me-1"></i>Selecciona el radio para marcar la opción correcta</div>
         </div>
 
-        <!-- Verdadero / Falso -->
         <div id="booleanOptions" style="<?= (isset($question) && $question->type == 'boolean') ? '' : 'display:none' ?>">
             <label class="form-label"><i class="bi bi-check-circle me-1"></i>Respuesta Correcta</label>
             <select name="boolean_correct" class="form-select">

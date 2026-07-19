@@ -5,7 +5,7 @@ namespace App\Controllers;
 use clases\Controller;
 use clases\Session;
 use App\Models\Prize;
-use App\Models\Level;
+use App\Models\ThemeLevel;
 use clases\Database;
 use clases\DigitalSignature;
 use clases\FileUploader;
@@ -17,7 +17,7 @@ class PrizeController extends Controller
         $this->requireRole(['armador', 'admin']);
 
         $db = Database::getInstance()->getConnection();
-        $stmt = $db->query("SELECT id, name, image, points_value, signature FROM prizes");
+        $stmt = $db->query("SELECT id, name, description, image, points_value, signature FROM prizes");
         $rows = $stmt->fetchAll();
 
         $prizes = [];
@@ -62,11 +62,11 @@ class PrizeController extends Controller
     public function create()
     {
         $this->requireRole(['armador', 'admin']);
-        $levels = Level::all();
+        $themeLevels = ThemeLevel::all();
         $csrfToken = Session::csrfToken();
         $this->render('prizes/form', [
             'csrfToken' => $csrfToken,
-            'levels' => $levels,
+            'themeLevels' => $themeLevels,
             'prize' => null
         ]);
     }
@@ -78,17 +78,16 @@ class PrizeController extends Controller
 
         $prize = new Prize([
             'name' => $_POST['name'],
+            'description' => $_POST['description'] ?? '',
             'points_value' => (int)$_POST['points_value'],
             'image' => $this->uploadImage('image')
         ]);
 
         $prize->saveWithSignature();
 
-        if (!empty($_POST['levels'])) {
-            $prize->syncLevels($_POST['levels']);
+        if (!empty($_POST['theme_levels'])) {
+            $prize->syncThemeLevels($_POST['theme_levels']);
         }
-
-        $prize = Prize::find($prize->id);
 
         $this->redirect('/admin/prizes');
     }
@@ -109,11 +108,13 @@ class PrizeController extends Controller
         $prize = new Prize($row);
         $prize->signature = $row['signature'] ?? null;
 
-        $levels = Level::all();
+        $themeLevels = ThemeLevel::all();
+        $prizeThemeLevelIds = $prize->themeLevelIds();
         $csrfToken = Session::csrfToken();
         $this->render('prizes/form', [
             'csrfToken' => $csrfToken,
-            'levels' => $levels,
+            'themeLevels' => $themeLevels,
+            'prizeThemeLevelIds' => $prizeThemeLevelIds,
             'prize' => $prize
         ]);
     }
@@ -135,6 +136,7 @@ class PrizeController extends Controller
         $prize = new Prize($row);
 
         $prize->name = $_POST['name'];
+        $prize->description = $_POST['description'] ?? '';
         $prize->points_value = (int)$_POST['points_value'];
 
         if (!empty($_FILES['image']['name'])) {
@@ -143,7 +145,7 @@ class PrizeController extends Controller
 
         $prize->saveWithSignature();
 
-        $prize->syncLevels($_POST['levels'] ?? []);
+        $prize->syncThemeLevels($_POST['theme_levels'] ?? []);
 
         $this->redirect('/admin/prizes');
     }
@@ -163,7 +165,7 @@ class PrizeController extends Controller
 
         $this->redirect('/admin/prizes');
     }
-//fff
+
     private function uploadImage($field): string
     {
         if (empty($_FILES[$field]['name'])) {

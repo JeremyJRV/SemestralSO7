@@ -183,24 +183,19 @@ class GameService
     }
 
     /**
-     * Otorga los premios configurados para el nivel recién completado
-     * (si el jugador no los tenía ya) y devuelve la lista de premios
-     * que se otorgaron EN ESTE MOMENTO, para poder mostrarlos en la
-     * pantalla de resultados justo después de terminar la partida.
+     * Otorga los premios configurados para el tema-nivel EXACTO recién
+     * completado (ej. "PHP - Básico", no cualquier "Básico"). Devuelve
+     * la lista de premios otorgados EN ESTE MOMENTO, para mostrarlos en
+     * la pantalla de resultados justo después de terminar la partida.
      *
      * @return Prize[] premios nuevos otorgados en esta llamada
      */
     private function awardPrizes(int $userId, int $themeLevelId): array
     {
         $db = Database::getInstance()->getConnection();
-        $stmt = $db->prepare("SELECT level_id FROM theme_levels WHERE id = :tlid");
+
+        $stmt = $db->prepare("SELECT prize_id FROM prize_levels WHERE theme_level_id = :tlid");
         $stmt->execute(['tlid' => $themeLevelId]);
-        $levelId = $stmt->fetchColumn();
-
-        if (!$levelId) return [];
-
-        $stmt = $db->prepare("SELECT prize_id FROM prize_levels WHERE level_id = :lid");
-        $stmt->execute(['lid' => $levelId]);
         $prizeIds = $stmt->fetchAll(\PDO::FETCH_COLUMN);
 
         $newlyAwarded = [];

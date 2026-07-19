@@ -10,35 +10,49 @@ class Prize extends Model
 {
     protected static string $table = 'prizes';
 
-    public function syncLevels(array $levelIds): void
+    public function syncThemeLevels(array $themeLevelIds): void
     {
         $db = Database::getInstance()->getConnection();
         $stmt = $db->prepare("DELETE FROM prize_levels WHERE prize_id = :pid");
         $stmt->execute(['pid' => $this->id]);
-        $stmt = $db->prepare("INSERT INTO prize_levels (prize_id, level_id) VALUES (:pid, :lid)");
-        foreach ($levelIds as $lid) {
-            $stmt->execute(['pid' => $this->id, 'lid' => $lid]);
+        $stmt = $db->prepare("INSERT INTO prize_levels (prize_id, theme_level_id) VALUES (:pid, :tlid)");
+        foreach ($themeLevelIds as $tlid) {
+            $stmt->execute(['pid' => $this->id, 'tlid' => $tlid]);
         }
     }
 
+    public function themeLevelIds(): array
+    {
+        $db = Database::getInstance()->getConnection();
+        $stmt = $db->prepare("SELECT theme_level_id FROM prize_levels WHERE prize_id = :pid");
+        $stmt->execute(['pid' => $this->id]);
+        return array_map('intval', $stmt->fetchAll(\PDO::FETCH_COLUMN));
+    }
+
+    /**
+     * Firma calculada sobre la fila fresca traída de la base (find()),
+     * no sobre $this->attributes en memoria, por la misma razón que en
+     * Question::saveWithSignature() -- evita desincronización entre lo
+     * que se firma al crear y lo que se verifica después.
+     */
     public function saveWithSignature(): bool
     {
-        // Guardar primero para obtener el ID
         $result = $this->save();
 
         if ($result && isset($this->attributes['id'])) {
-            // Ahora que tenemos ID, generamos la firma con el ID incluido
+            $fresh = self::find($this->attributes['id']);
+
             $data = [
-                'id' => $this->attributes['id'],
-                'name' => $this->attributes['name'],
-                'image' => $this->attributes['image'] ?? 'default.png',
-                'points_value' => (int)($this->attributes['points_value'] ?? 0)
+                'id' => $fresh->attributes['id'],
+                'name' => $fresh->attributes['name'],
+                'description' => $fresh->attributes['description'] ?? '',
+                'image' => $fresh->attributes['image'] ?? 'default.png',
+                'points_value' => (int)($fresh->attributes['points_value'] ?? 0)
             ];
 
             $signature = DigitalSignature::sign($data);
             $this->attributes['signature'] = $signature;
 
-            // Actualizar solo la firma
             $db = Database::getInstance()->getConnection();
             $stmt = $db->prepare("UPDATE prizes SET signature = :sig WHERE id = :id");
             $stmt->execute(['sig' => $signature, 'id' => $this->attributes['id']]);
@@ -56,6 +70,7 @@ class Prize extends Model
         $data = [
             'id' => $this->attributes['id'],
             'name' => $this->attributes['name'],
+            'description' => $this->attributes['description'] ?? '',
             'image' => $this->attributes['image'] ?? 'default.png',
             'points_value' => (int)($this->attributes['points_value'] ?? 0)
         ];
@@ -63,6 +78,7 @@ class Prize extends Model
         $signature = $this->attributes['signature'];
         return DigitalSignature::verify($data, $signature);
     }
+
     public static function findForEdit(int $id): ?self
     {
         $db = Database::getInstance()->getConnection();

@@ -16,7 +16,7 @@ class ExcelReportService
         $spreadsheet = new Spreadsheet();
 
         // ============================================================
-        // HOJA 1: Progreso de Usuarios (ya existía)
+        // HOJA 1: Progreso de Usuarios (ya existía).
         // ============================================================
         $sheet1 = $spreadsheet->getActiveSheet();
         $sheet1->setTitle('Progreso de Usuarios');

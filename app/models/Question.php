@@ -9,7 +9,6 @@ class Question extends Model
 {
     protected static string $table = 'questions';
 
-    // Todas las preguntas, con el nombre del tema y del nivel al que pertenecen
     public static function all(): array
     {
         $db = Database::getInstance()->getConnection();
@@ -25,7 +24,6 @@ class Question extends Model
         return array_map(fn($row) => new static($row), $rows);
     }
 
-    // Preguntas por tema-nivel (con JOIN para traer los nombres)
     public static function byThemeLevel(int $themeLevelId): array
     {
         $db = Database::getInstance()->getConnection();
@@ -43,7 +41,6 @@ class Question extends Model
         return array_map(fn($row) => new static($row), $rows);
     }
 
-    // Obtener opciones de la pregunta
     public function options(): array
     {
         return Option::where('question_id', $this->id);
@@ -52,38 +49,28 @@ class Question extends Model
     /**
      * Guarda la pregunta con firma digital.
      *
-     * BUG CORREGIDO: antes se calculaba la firma ANTES de guardar, cuando
-     * una pregunta nueva todavía no tenía 'id'. save() recién le asignaba
-     * el id DESPUÉS de firmar, así que la firma guardada nunca incluía el
-     * id. Al verificar más adelante (verifyIntegrity), se recalculaba la
-     * firma con TODAS las columnas de la fila -incluyendo el id- y nunca
-     * coincidía, por lo que toda pregunta se consideraba "corrupta" y el
-     * CRUD de edición no cargaba nada.
-     *
-     * Ahora seguimos el mismo patrón que Prize::saveWithSignature():
-     * 1) guardamos primero (para tener el id si es una pregunta nueva),
-     * 2) firmamos ya con el id incluido,
-     * 3) actualizamos solo la columna signature.
+     * Firma calculada SIEMPRE sobre la fila fresca traída de la base
+     * (no sobre $this->attributes en memoria), porque columnas como
+     * created_at se rellenan del lado de MySQL (DEFAULT CURRENT_TIMESTAMP)
+     * y no existen todavía en el objeto PHP justo después de crear. Si
+     * se firmara con el objeto en memoria, la firma no incluiría
+     * created_at, pero verifyIntegrity() sí lo trae al hacer find(),
+     * y la verificación fallaría siempre la primera vez.
      */
     public function saveWithSignature(): bool
     {
-        // Quitar cualquier firma anterior para no incluirla en el guardado normal
         unset($this->attributes['signature']);
 
-        // 1) Guardar primero, para asegurar que tenemos el id
         $result = $this->save();
 
         if ($result && isset($this->attributes['id'])) {
-            // 2) Ahora que tenemos el id, firmamos con TODOS los campos
-            //    relevantes (incluido el id) para que coincida siempre
-            //    con lo que se recalculará al verificar.
-            $data = $this->attributes;
+            $fresh = self::find($this->attributes['id']);
+            $data = $fresh->attributes;
             unset($data['signature']);
 
             $signature = DigitalSignature::sign($data);
             $this->attributes['signature'] = $signature;
 
-            // 3) Guardar solo la firma
             $db = Database::getInstance()->getConnection();
             $stmt = $db->prepare("UPDATE questions SET signature = :sig WHERE id = :id");
             $stmt->execute(['sig' => $signature, 'id' => $this->attributes['id']]);
@@ -92,13 +79,10 @@ class Question extends Model
         return $result;
     }
 
-    /**
-     * Verifica la integridad de la pregunta mediante su firma
-     */
     public function verifyIntegrity(): bool
     {
         if (!isset($this->attributes['signature']) || empty($this->attributes['signature'])) {
-            return true; // Si no tiene firma, consideramos que es válido
+            return true;
         }
         $data = $this->attributes;
         $signature = $data['signature'];
@@ -106,14 +90,11 @@ class Question extends Model
         return DigitalSignature::verify($data, $signature);
     }
 
-    /**
-     * Obtiene una pregunta y verifica su integridad
-     */
     public static function findWithVerification(int $id): ?self
     {
         $question = self::find($id);
         if ($question && !$question->verifyIntegrity()) {
-            return null; // Firma inválida
+            return null;
         }
         return $question;
     }

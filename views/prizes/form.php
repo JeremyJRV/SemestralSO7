@@ -60,31 +60,18 @@
         font-family: var(--font-display);
     }
 
-    .form-card-innovative .form-select {
-        border: 2px solid var(--border-dark);
-        border-radius: 0;
-        padding: 0.6rem 1rem;
-        font-family: var(--font-display);
-        font-weight: 500;
-        transition: all 0.15s ease;
-        appearance: none;
-        background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='8' viewBox='0 0 12 8'%3E%3Cpath d='M1 1l5 5 5-5' stroke='%231a2634' stroke-width='2' fill='none'/%3E%3C/svg%3E");
-        background-repeat: no-repeat;
-        background-position: right 1rem center;
-        background-size: 12px;
-    }
-
-    .form-card-innovative .form-select:focus {
-        outline: none;
-        border-color: var(--primary);
-        box-shadow: 4px 4px 0px var(--border-dark);
+    .form-card-innovative textarea.form-control {
+        resize: vertical;
+        min-height: 80px;
     }
 
     .form-card-innovative .checkbox-group {
         display: grid;
-        grid-template-columns: repeat(auto-fill, minmax(150px, 1fr));
+        grid-template-columns: repeat(auto-fill, minmax(180px, 1fr));
         gap: 0.5rem;
         padding: 0.8rem 0;
+        max-height: 260px;
+        overflow-y: auto;
     }
 
     .form-card-innovative .checkbox-item {
@@ -95,7 +82,7 @@
         border: 2px solid var(--border-light);
         transition: all 0.15s ease;
         font-family: var(--font-display);
-        font-size: 0.85rem;
+        font-size: 0.8rem;
         cursor: pointer;
     }
 
@@ -275,7 +262,7 @@
     @media (max-width: 768px) {
         .form-card-innovative { padding: 1.5rem; }
         .form-card-innovative .checkbox-group {
-            grid-template-columns: 1fr 1fr;
+            grid-template-columns: 1fr;
         }
         .admin-header-innovative { padding: 1rem 1.2rem; }
     }
@@ -307,7 +294,13 @@
 
         <div class="mb-3">
             <label class="form-label"><i class="bi bi-tag me-1"></i>Nombre del Premio</label>
-            <input type="text" name="name" class="form-control" required value="<?= htmlspecialchars($prize->name ?? '') ?>" placeholder="Ej. Medalla de Oro">
+            <input type="text" name="name" class="form-control" required value="<?= htmlspecialchars($prize->name ?? '') ?>" placeholder="Ej. Medalla PHP Básico">
+        </div>
+
+        <div class="mb-3">
+            <label class="form-label"><i class="bi bi-card-text me-1"></i>Descripción</label>
+            <textarea name="description" class="form-control" placeholder="Ej. Otorgado por completar el nivel Básico de PHP con al menos 80% de aciertos."><?= htmlspecialchars($prize->description ?? '') ?></textarea>
+            <div class="text-hint">Se le mostrará al jugador para que sepa por qué ganó este premio</div>
         </div>
 
         <div class="mb-3">
@@ -329,17 +322,17 @@
         </div>
 
         <div class="mb-4">
-            <label class="form-label"><i class="bi bi-layers me-1"></i>Asignar a Niveles</label>
+            <label class="form-label"><i class="bi bi-collection me-1"></i>Asignar a Tema y Nivel</label>
             <div class="checkbox-group">
-                <?php foreach ($levels as $level): ?>
+                <?php foreach ($themeLevels as $tl): ?>
                     <label class="checkbox-item">
-                        <input type="checkbox" name="levels[]" value="<?= $level->id ?>"
-                            <?= (isset($prize) && in_array($level->id, $prize->levels ?? [])) ? 'checked' : '' ?>>
-                        <?= htmlspecialchars($level->name) ?>
+                        <input type="checkbox" name="theme_levels[]" value="<?= $tl->id ?>"
+                            <?= (isset($prizeThemeLevelIds) && in_array($tl->id, $prizeThemeLevelIds)) ? 'checked' : '' ?>>
+                        <?= htmlspecialchars($tl->theme_name ?? 'Tema') ?> - <?= htmlspecialchars($tl->level_name ?? 'Nivel') ?>
                     </label>
                 <?php endforeach; ?>
             </div>
-            <div class="text-hint">El premio se otorgará al completar estos niveles</div>
+            <div class="text-hint">El premio se otorgará al completar estos tema-nivel específicos con 80% o más</div>
         </div>
 
         <div class="d-grid gap-2">
