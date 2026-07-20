@@ -54,7 +54,8 @@ class ExcelReportService
     private function fillUserProgressSheet($sheet, \PDO $db): void
     {
         $stmt = $db->query(
-            "SELECT u.username, u.email,
+            "SELECT u.id,
+                    u.username, u.email,
                     GROUP_CONCAT(CONCAT(t.name, ' - ', l.name, ' (', ulp.score_percentage, '%)') SEPARATOR ', ') as levels,
                     u.total_points,
                     (SELECT AVG(gr.response_time_ms)
@@ -73,24 +74,54 @@ class ExcelReportService
         );
         $data = $stmt->fetchAll();
 
+        // Tiempo promedio entre niveles consecutivos completados, por usuario.
+        $gapStmt = $db->query(
+            "SELECT user_id, AVG(gap_seconds) AS avg_gap_seconds
+             FROM (
+                SELECT ulp.user_id,
+                       TIMESTAMPDIFF(
+                           SECOND,
+                           LAG(ulp.attempted_at) OVER (
+                               PARTITION BY ulp.user_id, tl.theme_id
+                               ORDER BY l.order_index
+                           ),
+                           ulp.attempted_at
+                       ) AS gap_seconds
+                FROM user_level_progress ulp
+                JOIN theme_levels tl ON tl.id = ulp.theme_level_id
+                JOIN levels l ON l.id = tl.level_id
+                WHERE ulp.completed = 1
+             ) t
+             WHERE gap_seconds IS NOT NULL
+             GROUP BY user_id"
+        );
+        $gapByUser = [];
+        foreach ($gapStmt->fetchAll() as $row) {
+            $gapByUser[(int)$row['user_id']] = (float)$row['avg_gap_seconds'];
+        }
+
         $sheet->fromArray([
             'Usuario', 'Email', 'Niveles (Tema - Nivel - %)', 'Puntos Totales',
-            'Tiempo Promedio por Pregunta (ms)', 'Tiempo Promedio entre Niveles (seg)'
+            'Tiempo Promedio por Pregunta (ms)',
+            'Duración Promedio de Partida (seg)',
+            'Tiempo Promedio entre Niveles Consecutivos (seg)'
         ], null, 'A1');
-        $sheet->getStyle('A1:F1')->getFont()->setBold(true);
+        $sheet->getStyle('A1:G1')->getFont()->setBold(true);
 
         $row = 2;
         foreach ($data as $user) {
+            $userId = (int)$user['id'];
             $sheet->setCellValue("A$row", $user['username']);
             $sheet->setCellValue("B$row", $user['email']);
             $sheet->setCellValue("C$row", $user['levels'] ?? 'Sin progreso');
             $sheet->setCellValue("D$row", $user['total_points']);
             $sheet->setCellValue("E$row", round($user['avg_response_time_ms'] ?? 0));
             $sheet->setCellValue("F$row", round($user['avg_session_duration_sec'] ?? 0));
+            $sheet->setCellValue("G$row", isset($gapByUser[$userId]) ? round($gapByUser[$userId]) : 'Sin datos suficientes');
             $row++;
         }
 
-        foreach (['A', 'B', 'C', 'D', 'E', 'F'] as $col) {
+        foreach (['A', 'B', 'C', 'D', 'E', 'F', 'G'] as $col) {
             $sheet->getColumnDimension($col)->setAutoSize(true);
         }
     }

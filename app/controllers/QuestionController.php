@@ -13,6 +13,13 @@ class QuestionController extends Controller
     public function index($themeLevelId = null)
     {
         $this->requireRole(['armador','admin']);
+
+        // El filtro por tema-nivel viaja como query string (?theme_level_id=X),
+        // no como segmento de ruta, así que el Router nunca lo pasa como
+        // parámetro posicional. Lo leemos directo de $_GET.
+        $themeLevelId = $_GET['theme_level_id'] ?? $themeLevelId;
+        $themeLevelId = $themeLevelId !== null && $themeLevelId !== '' ? (int)$themeLevelId : null;
+
         $themeLevels = ThemeLevel::all();
         $questions = $themeLevelId ? Question::byThemeLevel($themeLevelId) : Question::all();
 
