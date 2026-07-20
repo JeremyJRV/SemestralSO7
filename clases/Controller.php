@@ -78,6 +78,15 @@ abstract class Controller
         }
     }
 
+    protected function requireAuth(): int
+    {
+        $userId = Session::get('user_id');
+        if (!$userId) {
+            $this->redirect('/login');
+        }
+        return $userId;
+    }
+
     protected function validate(array $data, array $rules): array
     {
         return Validator::validateMultiple($data, $rules);

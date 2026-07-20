@@ -16,8 +16,7 @@ class RankingController extends Controller
 {
     public function index()
     {
-        $userId = Session::get('user_id');
-        if (!$userId) $this->redirect('/login');
+        $userId = $this->requireAuth();
 
         $themeLevels = ThemeLevel::all();
         $selectedThemeLevel = $_GET['theme_level_id'] ?? null;

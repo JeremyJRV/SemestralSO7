@@ -10,11 +10,7 @@ class FeedbackController extends Controller
 {
     public function rateApp()
     {
-        $userId = Session::get('user_id');
-        if (!$userId) {
-            $this->json(['error' => 'No autenticado'], 401);
-            return;
-        }
+        $userId = $this->requireAuth();
 
         $this->csrfCheck();
 
@@ -35,11 +31,7 @@ class FeedbackController extends Controller
 
     public function suggestTheme()
     {
-        $userId = Session::get('user_id');
-        if (!$userId) {
-            $this->json(['error' => 'No autenticado'], 401);
-            return;
-        }
+        $userId = $this->requireAuth();
 
         $this->csrfCheck();
 

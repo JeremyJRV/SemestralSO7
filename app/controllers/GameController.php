@@ -19,8 +19,7 @@ class GameController extends Controller
 
     public function selectMode()
     {
-        $userId = Session::get('user_id');
-        if (!$userId) $this->redirect('/login');
+        $userId = $this->requireAuth();
 
         $availableLevels = $this->gameService->getAvailableLevelsForUser($userId);
         $hasRatedApp = AppRating::hasUserRated($userId);
@@ -41,8 +40,7 @@ class GameController extends Controller
 
     public function start($themeLevelId)
     {
-        $userId = Session::get('user_id');
-        if (!$userId) $this->redirect('/login');
+        $userId = $this->requireAuth();
 
         try {
             $session = $this->gameService->createSession($userId, $themeLevelId);
@@ -55,8 +53,7 @@ class GameController extends Controller
 
     public function play($sessionId)
     {
-        $userId = Session::get('user_id');
-        if (!$userId) $this->redirect('/login');
+        $userId = $this->requireAuth();
 
         $session = GameSession::find($sessionId);
         if (!$session) {
@@ -72,8 +69,7 @@ class GameController extends Controller
 
     public function submitAnswers($sessionId)
     {
-        $userId = Session::get('user_id');
-        if (!$userId) $this->redirect('/login');
+        $userId = $this->requireAuth();
 
         $this->csrfCheck();
 
@@ -137,7 +133,7 @@ class GameController extends Controller
     public function createRoom()
     {
         $this->requireRole(['armador','admin']);
-        $userId = Session::get('user_id');
+        $userId = $this->requireAuth();
         $themeLevels = $this->gameService->getAvailableLevelsForUser($userId);
         $csrfToken = Session::csrfToken();
         $this->render('game/create_room', [
@@ -162,8 +158,7 @@ class GameController extends Controller
 
     public function joinRoom($roomCode)
     {
-        $userId = Session::get('user_id');
-        if (!$userId) $this->redirect('/login');
+        $userId = $this->requireAuth();
 
         $session = GameSession::findByRoomCode($roomCode);
         if (!$session) {
@@ -186,12 +181,7 @@ class GameController extends Controller
             return;
         }
 
-        $userId = Session::get('user_id');
-        if (!$userId) {
-            Session::set('qr_redirect_theme_level', (int)$themeLevelId);
-            $this->redirect('/login?qr=1');
-            return;
-        }
+        $userId = $this->requireAuth();
 
         $this->redirect('/game/start/' . (int)$themeLevelId);
     }

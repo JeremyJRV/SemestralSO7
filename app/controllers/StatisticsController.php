@@ -35,10 +35,10 @@ class StatisticsController extends Controller
         // usa aquí, junto con accuracyForUser() y sessionsPlayedByUser()
         // (los mismos que ya usa el Dashboard), para mostrar una sección
         // aparte con las estadísticas PERSONALES del usuario logueado.
-        $userId = Session::get('user_id');
-        $myAvgTimePerQuestion = $userId ? GameResponse::averageTimePerQuestionForUser($userId) : [];
-        $myGamesPlayed = $userId ? GameResponse::sessionsPlayedByUser($userId) : 0;
-        $myAccuracy = $userId ? GameResponse::accuracyForUser($userId) : 0;
+        $userId = $this->requireAuth();
+        $myAvgTimePerQuestion = GameResponse::averageTimePerQuestionForUser($userId);
+        $myGamesPlayed = GameResponse::sessionsPlayedByUser($userId);
+        $myAccuracy = GameResponse::accuracyForUser($userId);
 
         $this->render('statistics/index', [
             'mostPlayed' => $mostPlayedThemes,

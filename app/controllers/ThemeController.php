@@ -114,11 +114,7 @@ class ThemeController extends Controller
 
     public function rate()
     {
-        $userId = Session::get('user_id');
-        if (!$userId) {
-            $this->json(['error' => 'No autenticado'], 401);
-            return;
-        }
+        $userId = $this->requireAuth();
 
         $this->csrfCheck();
 

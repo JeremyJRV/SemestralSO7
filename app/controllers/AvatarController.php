@@ -10,8 +10,7 @@ class AvatarController extends Controller
 {
     public function index()
     {
-        $userId = Session::get('user_id');
-        if (!$userId) $this->redirect('/login');
+        $userId = $this->requireAuth();
 
         $avatars = Avatar::byUser($userId);
         $csrfToken = Session::csrfToken();
@@ -23,8 +22,7 @@ class AvatarController extends Controller
 
     public function store()
     {
-        $userId = Session::get('user_id');
-        if (!$userId) $this->redirect('/login');
+        $userId = $this->requireAuth();
         $this->csrfCheck();
 
         if (empty($_FILES['image']['name'])) {
@@ -52,8 +50,7 @@ class AvatarController extends Controller
 
     public function update($id)
     {
-        $userId = Session::get('user_id');
-        if (!$userId) $this->redirect('/login');
+        $userId = $this->requireAuth();
         $this->csrfCheck();
 
         $avatar = Avatar::find($id);
@@ -81,8 +78,7 @@ class AvatarController extends Controller
 
     public function activate($id)
     {
-        $userId = Session::get('user_id');
-        if (!$userId) $this->redirect('/login');
+        $userId = $this->requireAuth();
         $this->csrfCheck();
         Avatar::activate((int)$id, $userId);
         $this->redirect('/profile');
@@ -90,8 +86,7 @@ class AvatarController extends Controller
 
     public function deactivate($id)
     {
-        $userId = Session::get('user_id');
-        if (!$userId) $this->redirect('/login');
+        $userId = $this->requireAuth();
         $this->csrfCheck();
         Avatar::deactivate((int)$id, $userId);
         $this->redirect('/profile');
@@ -99,8 +94,7 @@ class AvatarController extends Controller
 
     public function destroy($id)
     {
-        $userId = Session::get('user_id');
-        if (!$userId) $this->redirect('/login');
+        $userId = $this->requireAuth();
         $this->csrfCheck();
 
         $deleted = Avatar::deleteWithFile((int)$id, $userId);

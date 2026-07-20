@@ -13,8 +13,7 @@ class ProfileController extends Controller
 {
     public function show()
     {
-        $userId = Session::get('user_id');
-        if (!$userId) $this->redirect('/login');
+        $userId = $this->requireAuth();
 
         $user = User::find($userId);
         $progress = UserLevelProgress::byUser($userId);
@@ -27,8 +26,7 @@ class ProfileController extends Controller
 
     public function updateAvatar()
     {
-        $userId = Session::get('user_id');
-        if (!$userId) $this->redirect('/login');
+        $userId = $this->requireAuth();
 
         $this->csrfCheck();
         if (!empty($_FILES['avatar']['name'])) {

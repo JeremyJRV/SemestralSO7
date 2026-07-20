@@ -12,8 +12,7 @@ class DashboardController extends Controller
 {
     public function index()
     {
-        $userId = Session::get('user_id');
-        if (!$userId) $this->redirect('/login');
+        $userId = $this->requireAuth();
         $user = User::find($userId);
 
         $levelsByTheme = UserLevelProgress::currentAndNextLevelByTheme($userId);
