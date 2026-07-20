@@ -55,12 +55,6 @@
         box-shadow: var(--shadow-hard);
         margin-bottom: 1.5rem;
         position: relative;
-        transition: all 0.2s ease;
-    }
-
-    .question-card-innovative:hover {
-        transform: translate(-2px, -2px);
-        box-shadow: var(--shadow-hard-hover);
     }
 
     .question-card-innovative .q-number {
@@ -113,11 +107,12 @@
         cursor: pointer;
         transition: all 0.15s ease;
         font-family: var(--font-display);
+        background: var(--bg-card);
     }
 
     .option-item-innovative:hover {
         border-color: var(--border-dark);
-        background: #dbeafe;
+        background: var(--primary-lighter);
         transform: translateX(4px);
     }
 
@@ -175,49 +170,51 @@
         color: white !important;
         font-family: var(--font-display);
         font-weight: 700;
-        padding: 0.85rem 2.5rem;
-        font-size: 1rem;
+        padding: 0.6rem 1.8rem;
+        font-size: 0.9rem;
         border: 3px solid var(--border-dark);
         transition: all 0.15s ease;
         text-transform: uppercase;
         letter-spacing: 1px;
-        box-shadow: 6px 6px 0px var(--border-dark);
+        box-shadow: 4px 4px 0px var(--border-dark);
         width: 100%;
+        cursor: pointer;
     }
 
     .btn-submit-innovative:hover {
-        transform: translate(-3px, -3px);
-        box-shadow: 9px 9px 0px var(--border-dark);
+        background: var(--success);
+        transform: translate(-2px, -2px);
+        box-shadow: 6px 6px 0px var(--border-dark);
         color: white !important;
     }
 
-    /* AGREGADO: botón "Siguiente pregunta" para el flujo de una pregunta
-       a la vez (antes se mostraban todas juntas en un solo formulario) */
     .btn-next-question {
         background: var(--primary);
         color: white !important;
         font-family: var(--font-display);
         font-weight: 700;
-        padding: 0.85rem 2.5rem;
-        font-size: 1rem;
+        padding: 0.6rem 1.8rem;
+        font-size: 0.9rem;
         border: 3px solid var(--border-dark);
         transition: all 0.15s ease;
         text-transform: uppercase;
         letter-spacing: 1px;
-        box-shadow: 6px 6px 0px var(--border-dark);
+        box-shadow: 4px 4px 0px var(--border-dark);
         width: 100%;
+        cursor: pointer;
     }
 
     .btn-next-question:hover:not(:disabled) {
-        transform: translate(-3px, -3px);
-        box-shadow: 9px 9px 0px var(--border-dark);
+        background: var(--primary);
+        transform: translate(-2px, -2px);
+        box-shadow: 6px 6px 0px var(--border-dark);
         color: white !important;
     }
 
     .btn-next-question:disabled {
         opacity: 0.4;
         cursor: not-allowed;
-        box-shadow: 4px 4px 0px var(--border-dark);
+        box-shadow: 2px 2px 0px var(--border-dark);
     }
 
     .progress-bar-innovative {
@@ -299,17 +296,18 @@
         }
 
         .btn-submit-innovative {
-            font-size: 0.85rem;
-            padding: 0.7rem 1.5rem;
+            font-size: 0.8rem;
+            padding: 0.6rem 1.2rem;
+        }
+        .btn-next-question {
+            font-size: 0.8rem;
+            padding: 0.6rem 1.2rem;
         }
     }
 </style>
 
 <?php
 $totalQuestions = count($questions ?? []);
-// El índice inicial siempre es 0 (primera pregunta); a partir de aquí todo
-// el avance (índice actual, % de progreso, contador) lo maneja el JS de
-// abajo, ya que ahora se muestra una pregunta a la vez.
 $currentQuestion = 0;
 $progress = $totalQuestions > 0 ? round((($currentQuestion + 1) / $totalQuestions) * 100) : 0;
 ?>
@@ -382,14 +380,12 @@ $progress = $totalQuestions > 0 ? round((($currentQuestion + 1) / $totalQuestion
 
             <input type="hidden" name="times[<?= $question->id ?>]" class="response-time" value="0">
 
-            <!-- AGREGADO: navegación de a una pregunta por vez. La última
-                 pregunta muestra el botón de enviar; las demás, "Siguiente". -->
             <?php if ($index < $totalQuestions - 1): ?>
-                <button type="button" class="btn btn-next-question" disabled>
+                <button type="button" class="btn-next-question" disabled>
                     Siguiente pregunta <i class="bi bi-arrow-right ms-1"></i>
                 </button>
             <?php else: ?>
-                <button type="submit" class="btn btn-submit-innovative" disabled>
+                <button type="submit" class="btn-submit-innovative" disabled>
                     <i class="bi bi-check2-circle me-2"></i>Enviar respuestas
                 </button>
             <?php endif; ?>
@@ -400,11 +396,6 @@ $progress = $totalQuestions > 0 ? round((($currentQuestion + 1) / $totalQuestion
 <script>
     const totalQuestions = <?= $totalQuestions ?>;
     const questionCards = Array.from(document.querySelectorAll('.question-card-innovative'));
-    // AGREGADO: el tiempo de cada pregunta ahora se mide desde el momento
-    // en que esa pregunta se MUESTRA en pantalla, no desde que cargó la
-    // página completa (antes todas las preguntas estaban visibles a la vez,
-    // así que "tiempo de respuesta" de la pregunta 5 en realidad incluía el
-    // tiempo de leer y responder las 4 anteriores también).
     const questionStartTimes = {};
 
     function showQuestion(index) {
@@ -430,7 +421,6 @@ $progress = $totalQuestions > 0 ? round((($currentQuestion + 1) / $totalQuestion
             if (timeField && questionStartTimes[questionId]) {
                 timeField.value = Date.now() - questionStartTimes[questionId];
             }
-            // Habilitar el botón (Siguiente o Enviar) de esta pregunta apenas se elige una respuesta
             const card = input.closest('.question-card-innovative');
             const advanceBtn = card.querySelector('.btn-next-question, .btn-submit-innovative');
             if (advanceBtn) advanceBtn.disabled = false;
@@ -446,6 +436,5 @@ $progress = $totalQuestions > 0 ? round((($currentQuestion + 1) / $totalQuestion
         });
     });
 
-    // Arrancar en la primera pregunta (esto también dispara el cronómetro de la pregunta 1)
     showQuestion(0);
 </script>
