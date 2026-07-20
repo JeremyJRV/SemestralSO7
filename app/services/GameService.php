@@ -147,6 +147,16 @@ class GameService
         $session = GameSession::find($sessionId);
         $themeLevelId = $session->theme_level_id;
 
+        // Antes nunca se marcaba cuándo terminó la partida, así que
+        // "Duración Promedio de Partida" en el Excel siempre salía en 0
+        // (la consulta filtra finished_at IS NOT NULL, y esa columna
+        // nunca se llenaba). Se marca aquí, justo cuando se procesan
+        // las respuestas finales de la sesión.
+        if (!$session->finished_at) {
+            $db->prepare("UPDATE game_sessions SET finished_at = NOW() WHERE id = :id")
+                ->execute(['id' => $sessionId]);
+        }
+
         // Se conserva el MEJOR puntaje histórico (score_percentage) para
         // no volver a bloquear un nivel ya desbloqueado si el usuario
         // repite el tema-nivel y saca menos.
