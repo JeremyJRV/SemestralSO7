@@ -48,7 +48,8 @@ class StatisticsController extends Controller
             'overallAvgTime' => $overallAvgTime,
             'myAvgTimePerQuestion' => $myAvgTimePerQuestion,
             'myGamesPlayed' => $myGamesPlayed,
-            'myAccuracy' => $myAccuracy
+            'myAccuracy' => $myAccuracy,
+            'activePage' => 'statistics'
         ]);
     }
 }

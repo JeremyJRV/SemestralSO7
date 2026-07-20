@@ -6,7 +6,7 @@ use clases\Session;
 use clases\Validator;
 use App\Models\User;
 use App\Models\LoginAttempt;
-//Revisar la implementación de las expceciones 
+//Revisar la implementación de las expceciones.
 class AuthController extends Controller
 {
     // Muestra formulario de login

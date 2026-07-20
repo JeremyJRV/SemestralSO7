@@ -26,8 +26,8 @@
             --border-light: #e2e8f0;
             --shadow-hard: 6px 6px 0px rgba(26, 38, 52, 0.15);
             --shadow-hard-hover: 8px 8px 0px rgba(26, 38, 52, 0.2);
-            --radius: 0px;
-            --radius-sm: 0px;
+            --radius: 12px;
+            --radius-sm: 6px;
             --font-display: 'Space Grotesk', sans-serif;
             --font-mono: 'JetBrains Mono', monospace;
         }
@@ -43,9 +43,10 @@
             font-family: var(--font-display);
             min-height: 100vh;
             color: var(--text-dark);
+            display: flex;
+            flex-direction: column;
         }
 
-        /* ========== DECORACIÓN DE FONDO ========== */
         body::before {
             content: '';
             position: fixed;
@@ -72,7 +73,13 @@
             z-index: 0;
         }
 
-        /* ========== NAVBAR ========== */
+        .main-content {
+            flex: 1;
+        }
+
+        /* ============================================
+           NAVBAR
+        ============================================ */
         .navbar-innovative {
             background: var(--bg-card);
             border-bottom: 3px solid var(--border-dark);
@@ -106,7 +113,7 @@
         }
 
         .navbar-innovative .navbar-brand span::after {
-            content: '✦';
+            content: '';
             font-size: 0.6rem;
             margin-left: 2px;
             color: var(--primary);
@@ -123,11 +130,20 @@
             letter-spacing: 0.5px;
             position: relative;
             border: 2px solid transparent;
+            border-radius: var(--radius-sm);
         }
 
         .navbar-innovative .nav-link:hover {
             color: var(--text-dark) !important;
             background: #dbeafe;
+            border: 2px solid var(--border-dark);
+            transform: translate(-2px, -2px);
+            box-shadow: 4px 4px 0px var(--border-dark);
+        }
+
+        .navbar-innovative .nav-link.active {
+            color: var(--text-dark) !important;
+            background: var(--primary-light);
             border: 2px solid var(--border-dark);
             transform: translate(-2px, -2px);
             box-shadow: 4px 4px 0px var(--border-dark);
@@ -146,6 +162,7 @@
             letter-spacing: 0.5px;
             box-shadow: 4px 4px 0px var(--border-dark);
             position: relative;
+            border-radius: var(--radius-sm);
         }
 
         .btn-primary-innovative:hover {
@@ -171,6 +188,7 @@
             font-size: 0.85rem;
             text-transform: uppercase;
             letter-spacing: 0.5px;
+            border-radius: var(--radius-sm);
         }
 
         .btn-outline-innovative:hover {
@@ -180,13 +198,16 @@
             box-shadow: 4px 4px 0px var(--primary);
         }
 
-        /* ========== CARDS ========== */
+        /* ============================================
+           CARDS
+        ============================================ */
         .card-innovative {
             background: var(--bg-card);
             border: 3px solid var(--border-dark);
             transition: all 0.2s ease;
             box-shadow: var(--shadow-hard);
             position: relative;
+            border-radius: var(--radius);
         }
 
         .card-innovative:hover {
@@ -194,7 +215,9 @@
             box-shadow: var(--shadow-hard-hover);
         }
 
-        /* ========== FOOTER ========== */
+        /* ============================================
+           FOOTER
+        ============================================ */
         .footer-innovative {
             background: var(--primary-darker);
             padding: 2.5rem 0;
@@ -204,16 +227,15 @@
         }
 
         .footer-innovative::before {
-            content: '✦ ✦ ✦';
+            content: '';
             position: absolute;
             top: -12px;
             left: 50%;
             transform: translateX(-50%);
             background: var(--primary);
-            color: white;
             padding: 0 1.5rem;
-            font-size: 0.7rem;
-            letter-spacing: 4px;
+            width: 60px;
+            height: 4px;
         }
 
         .footer-innovative small {
@@ -228,7 +250,9 @@
             font-weight: 700;
         }
 
-        /* ========== BADGES ========== */
+        /* ============================================
+           BADGES
+        ============================================ */
         .badge-innovative {
             background: var(--primary-light);
             color: var(--primary);
@@ -239,9 +263,12 @@
             letter-spacing: 0.5px;
             border: 2px solid var(--border-dark);
             font-family: var(--font-mono);
+            border-radius: var(--radius-sm);
         }
 
-        /* ========== DECORATIVE ELEMENTS ========== */
+        /* ============================================
+           DECORATIVE ELEMENTS
+        ============================================ */
         .corner-tag {
             position: absolute;
             top: -10px;
@@ -256,6 +283,7 @@
             letter-spacing: 1px;
             border: 2px solid var(--border-dark);
             transform: rotate(3deg);
+            border-radius: var(--radius-sm);
         }
 
         .corner-tag-left {
@@ -271,6 +299,7 @@
             text-transform: uppercase;
             letter-spacing: 1px;
             transform: rotate(-2deg);
+            border-radius: var(--radius-sm);
         }
 
         .divider-innovative {
@@ -281,18 +310,23 @@
         }
 
         .divider-innovative::after {
-            content: '◆';
+            content: '';
             position: absolute;
             top: 50%;
             left: 50%;
             transform: translate(-50%, -50%);
             background: var(--bg-page);
             padding: 0 1rem;
-            color: var(--primary);
-            font-size: 0.8rem;
+            width: 12px;
+            height: 12px;
+            background: var(--primary);
+            border: 2px solid var(--border-dark);
+            transform: translate(-50%, -50%) rotate(45deg);
         }
 
-        /* ========== UTILITY ========== */
+        /* ============================================
+           UTILITY
+        ============================================ */
         .text-primary-innovative {
             color: var(--primary);
         }
@@ -320,7 +354,7 @@
             border: 2px solid var(--border-dark);
         }
 
-        /* Animación */
+        /* Animacion */
         @keyframes slideIn {
             from {
                 opacity: 0;
@@ -345,6 +379,14 @@
             .card-innovative {
                 padding: 1.5rem;
             }
+
+            .footer-innovative {
+                padding: 2rem 0;
+            }
+
+            .footer-innovative small {
+                font-size: 0.7rem;
+            }
         }
     </style>
 </head>
@@ -360,9 +402,26 @@
             </button>
             <div class="collapse navbar-collapse" id="navbarNav">
                 <ul class="navbar-nav me-auto">
-                    <li class="nav-item"><a class="nav-link" href="<?= APP_URL ?>/">Inicio</a></li>
-                    <li class="nav-item"><a class="nav-link" href="<?= APP_URL ?>/about">Acerca de</a></li>
-                    <li class="nav-item"><a class="nav-link" href="<?= APP_URL ?>/contact">Contacto</a></li>
+                    <li class="nav-item">
+                        <a class="nav-link <?= ($activePage ?? '') === 'home' ? 'active' : '' ?>" href="<?= APP_URL ?>/">
+                            Inicio
+                        </a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link <?= ($activePage ?? '') === 'about' ? 'active' : '' ?>" href="<?= APP_URL ?>/about">
+                            Acerca de
+                        </a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link <?= ($activePage ?? '') === 'team' ? 'active' : '' ?>" href="<?= APP_URL ?>/team">
+                            Sobre nosotros
+                        </a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link <?= ($activePage ?? '') === 'contact' ? 'active' : '' ?>" href="<?= APP_URL ?>/contact">
+                            Contacto
+                        </a>
+                    </li>
                 </ul>
                 <ul class="navbar-nav ms-auto gap-2">
                     <li class="nav-item">
@@ -380,13 +439,15 @@
         </div>
     </nav>
 
-    <div class="container mt-4 animate-slide">
-        <?= $content ?? '' ?>
+    <div class="main-content">
+        <div class="container mt-4 animate-slide">
+            <?= $content ?? '' ?>
+        </div>
     </div>
 
     <footer class="footer-innovative">
         <div class="container text-center">
-            <small>&copy; <?= date('Y') ?> <span>Trivias</span> — Proyecto académico Desarrollo 7</small>
+            <small>&copy; <?= date('Y') ?> <span>Trivias</span> — Desarrollo de Software VII - Proyecto Semestral</small>
         </div>
     </footer>
 

@@ -38,7 +38,8 @@ class RankingController extends Controller
             'myPosition' => $myPosition,
             'topPlayers' => $topPlayers,
             'myGlobalPosition' => $myGlobalPosition,
-            'currentUserId' => $userId
+            'currentUserId' => $userId,
+            'activePage' => 'ranking'
         ]);
     }
 }

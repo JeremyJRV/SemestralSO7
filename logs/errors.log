@@ -35,3 +35,5 @@
 2026-07-19 15:01:13 - Error: Call to undefined method App\Models\UserLevelProgress::scoresForUser() in C:\wamp64\www\SemestralSO7\app\controllers\GameController.php:29
 2026-07-19 15:04:40 - Error: Call to undefined method App\Models\UserLevelProgress::scoresForUser() in C:\wamp64\www\SemestralSO7\app\controllers\GameController.php:29
 2026-07-19 15:20:00 - Error: Call to undefined method App\Models\UserLevelProgress::scoresForUser() in C:\wamp64\www\SemestralSO7\app\controllers\GameController.php:29
+2026-07-20 11:22:49 - TypeError: call_user_func_array(): Argument #1 ($callback) must be a valid callback, class App\Controllers\LandingController does not have a method "team" in C:\wamp64\www\SemestralSO7\clases\Router.php:47
+2026-07-20 14:56:28 - Error: Class "App\Controllers\Database" not found in C:\wamp64\www\SemestralSO7\app\controllers\GameController.php:106

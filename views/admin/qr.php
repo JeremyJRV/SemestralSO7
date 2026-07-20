@@ -22,7 +22,7 @@
 
 <div class="admin-header-innovative">
     <h2><i class="bi bi-qr-code"></i>Códigos QR de Acceso</h2>
-    <p>Comparte estos códigos para que los jugadores accedan directo a un set de preguntas.</p>
+    <p>Comparte estos códigos para que los jugadores accedan directo a un set de preguntas</p>
 </div>
 
 <?php if (!empty($themeLevels)): ?>

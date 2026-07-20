@@ -1,7 +1,4 @@
 <style>
-    /* ============================================
-       VARIABLES Y ESTILOS BASE
-    ============================================ */
     :root {
         --bg-page: #f0f4fe;
         --bg-card: #ffffff;
@@ -25,9 +22,19 @@
         --danger: #ef4444;
     }
 
-    /* ============================================
-       HEADER DEL DASHBOARD
-    ============================================ */
+    * {
+        margin: 0;
+        padding: 0;
+        box-sizing: border-box;
+    }
+
+    body {
+        background: var(--bg-page);
+        font-family: var(--font-display);
+        min-height: 100vh;
+        color: var(--text-dark);
+    }
+
     .dash-header-innovative {
         margin-bottom: 2rem;
         padding: 1.5rem 2rem;
@@ -84,9 +91,6 @@
         margin-right: 0.3rem;
     }
 
-    /* ============================================
-       TARJETAS DE ESTADÍSTICAS
-    ============================================ */
     .stat-card-innovative {
         background: var(--bg-card);
         border: 3px solid var(--border-dark);
@@ -186,9 +190,6 @@
         margin-right: 0.2rem;
     }
 
-    /* ============================================
-       PROGRESO POR TEMAS
-    ============================================ */
     .theme-progress-card {
         background: var(--bg-card);
         border: 3px solid var(--border-dark);
@@ -205,9 +206,6 @@
         letter-spacing: 0.5px;
     }
 
-    /* ============================================
-       BOTÓN JUGAR - VERSIÓN ESPECTACULAR
-    ============================================ */
     .btn-play-innovative {
         position: relative;
         display: block;
@@ -228,21 +226,18 @@
         gap: 1.2rem;
     }
 
-    /* 🔥 HOVER: ANIMACIÓN DE GRADIENTE + LEVITACIÓN */
     .btn-play-innovative:hover {
         transform: translateY(-6px) scale(1.02);
         box-shadow: 12px 12px 0px var(--border-dark);
         background-position: 100% 100%;
     }
 
-    /* 🔥 ACTIVE: EFECTO DE PRESIONAR */
     .btn-play-innovative:active {
         transform: translateY(2px) scale(0.98);
         box-shadow: 4px 4px 0px var(--border-dark);
         transition-duration: 0.05s;
     }
 
-    /* ICONO DEL BOTÓN */
     .btn-play-innovative .play-icon {
         font-size: 3rem;
         color: white;
@@ -251,12 +246,10 @@
         flex-shrink: 0;
     }
 
-    /* 🔥 HOVER: ICONO BRINCA Y GIRA */
     .btn-play-innovative:hover .play-icon {
         transform: scale(1.2) rotate(-8deg) translateX(-4px);
     }
 
-    /* TEXTO DEL BOTÓN */
     .btn-play-innovative .play-text {
         display: flex;
         flex-direction: column;
@@ -277,7 +270,6 @@
         transition: transform 0.3s ease;
     }
 
-    /* 🔥 HOVER: TEXTO PRINCIPAL SE MUEVE */
     .btn-play-innovative:hover .play-text .main {
         transform: translateX(4px);
     }
@@ -292,12 +284,10 @@
         transition: opacity 0.3s ease;
     }
 
-    /* 🔥 HOVER: SUBTEXTO MÁS BRILLANTE */
     .btn-play-innovative:hover .play-text .sub {
         opacity: 1;
     }
 
-    /* FLECHA ANIMADA */
     .btn-play-innovative .play-arrow {
         font-size: 2rem;
         color: rgba(255, 255, 255, 0.6);
@@ -306,13 +296,11 @@
         margin-left: 0.5rem;
     }
 
-    /* 🔥 HOVER: FLECHA SE DESPLAZA Y SE VUELVE BLANCA */
     .btn-play-innovative:hover .play-arrow {
         transform: translateX(12px) scale(1.2);
         color: rgba(255, 255, 255, 1);
     }
 
-    /* EFECTO DE BRILLO (SHIMMER) AL HOVER */
     .btn-play-innovative::before {
         content: '';
         position: absolute;
@@ -327,12 +315,10 @@
         transform: rotate(25deg);
     }
 
-    /* 🔥 HOVER: BRILLO APARECE */
     .btn-play-innovative:hover::before {
         opacity: 1;
     }
 
-    /* PARTÍCULAS DECORATIVAS */
     .btn-play-innovative .particle {
         position: absolute;
         width: 6px;
@@ -357,7 +343,6 @@
         right: 8%;
     }
 
-    /* 🔥 HOVER: PARTÍCULAS APARECEN Y SE MUEVEN */
     .btn-play-innovative:hover .particle.p1 {
         opacity: 1;
         transform: translate(-20px, -20px) scale(1.5);
@@ -374,9 +359,6 @@
         background: rgba(124, 58, 237, 0.8);
     }
 
-    /* ============================================
-       ENCUESTA EN DASHBOARD
-    ============================================ */
     .survey-card-dash {
         margin-top: 1.5rem;
         background: var(--bg-card);
@@ -451,9 +433,6 @@
         display: none;
     }
 
-    /* ============================================
-       ACTIVIDAD RECIENTE
-    ============================================ */
     .activity-innovative {
         margin-top: 2rem;
         background: var(--bg-card);
@@ -522,9 +501,10 @@
         white-space: nowrap;
     }
 
-    /* ============================================
-       RESPONSIVE
-    ============================================ */
+    .text-gray-innovative {
+        color: var(--text-gray);
+    }
+
     @media (max-width: 768px) {
         .dash-header-innovative .greeting {
             font-size: 1.3rem;
@@ -582,17 +562,13 @@
     }
 </style>
 
-<!-- ============================================
-     HTML DEL DASHBOARD
-============================================ -->
-
 <?php $user = $user ?? null; ?>
 
 <div class="dash-header-innovative">
     <div class="d-flex flex-wrap align-items-center justify-content-between gap-2">
         <div>
             <div class="greeting">
-                <i class="bi bi-controller"></i>¡Bienvenido, <?= htmlspecialchars($user->username ?? 'Jugador') ?>!
+                <i class="bi bi-controller"></i>Bienvenido, <?= htmlspecialchars($user->username ?? 'Jugador') ?>
             </div>
         </div>
         <div>
@@ -604,7 +580,6 @@
     </div>
 </div>
 
-<!-- ====== TARJETAS DE ESTADÍSTICAS ====== -->
 <div class="row g-3">
     <div class="col-md-4">
         <div class="stat-card-innovative">
@@ -612,7 +587,7 @@
             <div class="stat-icon-innovative"><i class="bi bi-star-fill"></i></div>
             <div class="stat-label">Puntos Totales</div>
             <div class="stat-value primary"><?= number_format($user->total_points ?? 0) ?></div>
-            <div class="stat-sub"><i class="bi bi-arrow-up-short"></i> Sigue así</div>
+            <div class="stat-sub"><i class="bi bi-arrow-up-short"></i> Sigue asi</div>
         </div>
     </div>
     <div class="col-md-4">
@@ -621,21 +596,43 @@
             <div class="stat-icon-innovative" style="color:#7c3aed; background:#f5f3ff;"><i class="bi bi-joystick"></i></div>
             <div class="stat-label">Partidas Jugadas</div>
             <div class="stat-value purple"><?= number_format($gamesPlayed ?? 0) ?></div>
-            <div class="stat-sub"><i class="bi bi-clock-history"></i> Total histórico</div>
+            <div class="stat-sub"><i class="bi bi-clock-history"></i> Total historico</div>
         </div>
     </div>
     <div class="col-md-4">
         <div class="stat-card-innovative">
             <span class="corner-accent" style="background:#22c55e;"></span>
             <div class="stat-icon-innovative" style="color:#22c55e; background:#f0fdf4;"><i class="bi bi-bullseye"></i></div>
-            <div class="stat-label">Precisión</div>
+            <div class="stat-label">Precision</div>
             <div class="stat-value green"><?= number_format($accuracy ?? 0, 1) ?>%</div>
             <div class="stat-sub"><i class="bi bi-check2-circle"></i> Respuestas correctas</div>
         </div>
     </div>
 </div>
 
-<!-- ====== PROGRESO POR TEMAS ====== -->
+<div class="row mt-3">
+    <div class="col-12">
+        <a href="<?= APP_URL ?>/game" class="btn-play-innovative">
+            <span class="particle p1"></span>
+            <span class="particle p2"></span>
+            <span class="particle p3"></span>
+
+            <span class="play-icon">
+                <i class="bi bi-joystick"></i>
+            </span>
+
+            <span class="play-text">
+                <span class="main">Jugar ahora</span>
+                <span class="sub">Elige un tema y empieza a ganar puntos</span>
+            </span>
+
+            <span class="play-arrow">
+                <i class="bi bi-arrow-right-circle-fill"></i>
+            </span>
+        </a>
+    </div>
+</div>
+
 <div class="row mt-3">
     <div class="col-12">
         <div class="theme-progress-card">
@@ -659,49 +656,23 @@
                                 <?php if ($lvl['next']): ?>
                                     <span class="text-gray-innovative"> → <?= htmlspecialchars($lvl['next']) ?></span>
                                 <?php else: ?>
-                                    <span class="text-gray-innovative"> · ¡Nivel máximo!</span>
+                                    <span class="text-gray-innovative"> · Nivel maximo</span>
                                 <?php endif; ?>
                             </span>
                         </div>
                     <?php endforeach; ?>
                 </div>
             <?php else: ?>
-                <p class="text-gray-innovative mb-0">Aún no hay temas disponibles.</p>
+                <p class="text-gray-innovative mb-0">Aun no hay temas disponibles.</p>
             <?php endif; ?>
         </div>
     </div>
 </div>
 
-<!-- ====== BOTÓN JUGAR - ESPECTACULAR ====== -->
-<div class="row mt-3">
-    <div class="col-12">
-        <a href="<?= APP_URL ?>/game" class="btn-play-innovative">
-            <!-- Partículas decorativas -->
-            <span class="particle p1"></span>
-            <span class="particle p2"></span>
-            <span class="particle p3"></span>
-
-            <span class="play-icon">
-                <i class="bi bi-joystick"></i>
-            </span>
-
-            <span class="play-text">
-                <span class="main">¡Jugar ahora!</span>
-                <span class="sub">Elige un tema y empieza a ganar puntos</span>
-            </span>
-
-            <span class="play-arrow">
-                <i class="bi bi-arrow-right-circle-fill"></i>
-            </span>
-        </a>
-    </div>
-</div>
-
-<!-- ====== ENCUESTA (opcional) ====== -->
 <?php if ($survey): ?>
     <?php $surveyOptions = json_decode($survey->options ?? '[]', true) ?: []; ?>
     <div class="survey-card-dash" id="surveyCard">
-        <div class="survey-title"><i class="bi bi-clipboard-data"></i>Ayúdanos con una pregunta rápida</div>
+        <div class="survey-title"><i class="bi bi-clipboard-data"></i>Ayudanos con una pregunta rapida</div>
         <div class="survey-question"><?= htmlspecialchars($survey->question) ?></div>
 
         <form id="surveyForm">
@@ -743,7 +714,6 @@
     </script>
 <?php endif; ?>
 
-<!-- ====== ACTIVIDAD RECIENTE ====== -->
 <?php if (!empty($recentActivity)): ?>
 <div class="activity-innovative">
     <div class="activity-title">
@@ -769,7 +739,7 @@
         <i class="bi bi-clock-history"></i> Actividad Reciente
     </div>
     <p class="text-gray-innovative" style="margin: 0.5rem 0 0; font-family: var(--font-display);">
-        <i class="bi bi-emoji-smile me-1"></i> Aún no tienes actividad. ¡Juega una partida!
+        <i class="bi bi-emoji-smile me-1"></i> Aun no tienes actividad. Juega una partida
     </p>
 </div>
 <?php endif; ?>

@@ -27,8 +27,8 @@
             --border-light: #e2e8f0;
             --shadow-hard: 6px 6px 0px rgba(26, 38, 52, 0.12);
             --shadow-hard-hover: 8px 8px 0px rgba(26, 38, 52, 0.18);
-            --radius: 0px;
-            --radius-sm: 0px;
+            --radius: 12px;
+            --radius-sm: 6px;
             --font-display: 'Space Grotesk', sans-serif;
             --font-mono: 'JetBrains Mono', monospace;
             --success: #22c55e;
@@ -47,21 +47,48 @@
             font-family: var(--font-display);
             min-height: 100vh;
             color: var(--text-dark);
+            display: flex;
+            flex-direction: column;
+            position: relative;
+            overflow-x: hidden;
         }
 
+        /* ====== FONDO DECORATIVO ====== */
         body::before {
-            content: '◆ ◆ ◆';
+            content: '';
             position: fixed;
-            bottom: 20px;
-            right: 20px;
-            color: rgba(59, 130, 246, 0.04);
-            font-size: 1.5rem;
-            letter-spacing: 8px;
+            top: -200px;
+            right: -150px;
+            width: 600px;
+            height: 600px;
+            background: radial-gradient(circle, rgba(59, 130, 246, 0.08) 0%, transparent 70%);
+            border-radius: 50%;
             pointer-events: none;
             z-index: 0;
-            transform: rotate(-15deg);
         }
 
+        body::after {
+            content: '';
+            position: fixed;
+            bottom: -150px;
+            left: -150px;
+            width: 500px;
+            height: 500px;
+            background: radial-gradient(circle, rgba(59, 130, 246, 0.05) 0%, transparent 70%);
+            border-radius: 50%;
+            pointer-events: none;
+            z-index: 0;
+        }
+
+        .main-content {
+            flex: 1;
+            position: relative;
+            z-index: 1;
+        }
+
+        /* ============================================
+           NAVBAR
+        ============================================ */
         .navbar-dash-innovative {
             background: var(--primary-darker);
             padding: 0.6rem 0;
@@ -103,6 +130,7 @@
             text-transform: uppercase;
             letter-spacing: 0.5px;
             border: 2px solid transparent;
+            border-radius: var(--radius-sm);
         }
 
         .navbar-dash-innovative .nav-link i {
@@ -116,10 +144,17 @@
             transform: translate(-2px, -2px);
         }
 
+        .navbar-dash-innovative .nav-link.active {
+            color: white !important;
+            background: rgba(255, 255, 255, 0.15);
+            border: 2px solid rgba(255, 255, 255, 0.2);
+            transform: translate(-2px, -2px);
+        }
+
         .navbar-dash-innovative .dropdown-menu {
             background: var(--bg-card);
             border: 3px solid var(--border-dark);
-            border-radius: 0;
+            border-radius: var(--radius-sm);
             padding: 0.5rem;
             box-shadow: var(--shadow-hard);
         }
@@ -127,7 +162,7 @@
         .navbar-dash-innovative .dropdown-item {
             font-family: var(--font-display);
             color: var(--text-gray);
-            border-radius: 0;
+            border-radius: var(--radius-sm);
             padding: 0.6rem 1.2rem;
             transition: all 0.2s ease;
             font-weight: 500;
@@ -159,6 +194,7 @@
             align-items: center;
             gap: 0.5rem;
             letter-spacing: 0.3px;
+            border-radius: var(--radius-sm);
         }
 
         .user-badge-dash-innovative i {
@@ -177,6 +213,7 @@
             font-size: 0.8rem;
             text-transform: uppercase;
             letter-spacing: 0.5px;
+            border-radius: var(--radius-sm);
         }
 
         .btn-logout-dash-innovative:hover {
@@ -187,6 +224,9 @@
             box-shadow: 4px 4px 0px rgba(239, 68, 68, 0.3);
         }
 
+        /* ============================================
+           CARDS
+        ============================================ */
         .card-innovative {
             background: var(--bg-card);
             border: 3px solid var(--border-dark);
@@ -194,6 +234,7 @@
             box-shadow: var(--shadow-hard);
             overflow: visible;
             position: relative;
+            border-radius: var(--radius);
         }
 
         .card-innovative:hover {
@@ -222,6 +263,9 @@
             padding: 1.5rem;
         }
 
+        /* ============================================
+           TABLAS
+        ============================================ */
         .table-innovative {
             background: transparent;
             border-collapse: collapse;
@@ -259,6 +303,9 @@
             font-weight: 500;
         }
 
+        /* ============================================
+           BADGES
+        ============================================ */
         .badge-innovative {
             background: var(--primary-light);
             color: var(--primary);
@@ -269,6 +316,7 @@
             letter-spacing: 0.5px;
             border: 2px solid var(--border-dark);
             font-family: var(--font-mono);
+            border-radius: var(--radius-sm);
         }
 
         .badge-innovative-success {
@@ -289,6 +337,44 @@
             border-color: #dc2626;
         }
 
+        /* ============================================
+           FOOTER
+        ============================================ */
+        .footer-innovative {
+            background: var(--primary-darker);
+            padding: 2.5rem 0;
+            margin-top: 4rem;
+            border-top: 4px solid var(--primary);
+            position: relative;
+        }
+
+        .footer-innovative::before {
+            content: '';
+            position: absolute;
+            top: -12px;
+            left: 50%;
+            transform: translateX(-50%);
+            background: var(--primary);
+            padding: 0 1.5rem;
+            width: 60px;
+            height: 4px;
+        }
+
+        .footer-innovative small {
+            color: rgba(255, 255, 255, 0.5);
+            font-family: var(--font-mono);
+            font-size: 0.8rem;
+            letter-spacing: 0.5px;
+        }
+
+        .footer-innovative small span {
+            color: var(--primary);
+            font-weight: 700;
+        }
+
+        /* ============================================
+           UTILITY
+        ============================================ */
         .text-primary-innovative {
             color: var(--primary);
         }
@@ -309,6 +395,9 @@
             border-color: var(--border-dark) !important;
         }
 
+        /* ============================================
+           SCROLLBAR
+        ============================================ */
         ::-webkit-scrollbar {
             width: 12px;
         }
@@ -323,6 +412,9 @@
             border: 2px solid var(--border-dark);
         }
 
+        /* ============================================
+           ANIMACION
+        ============================================ */
         @keyframes slideIn {
             from {
                 opacity: 0;
@@ -339,9 +431,29 @@
             animation: slideIn 0.4s ease forwards;
         }
 
+        /* ============================================
+           RESPONSIVE
+        ============================================ */
         @media (max-width: 768px) {
             .card-innovative .card-body {
                 padding: 1.2rem;
+            }
+            .footer-innovative {
+                padding: 2rem 0;
+            }
+            .footer-innovative small {
+                font-size: 0.7rem;
+            }
+            .navbar-dash-innovative .navbar-brand {
+                font-size: 1.1rem;
+            }
+            .user-badge-dash-innovative {
+                font-size: 0.7rem;
+                padding: 0.2rem 0.8rem;
+            }
+            .btn-logout-dash-innovative {
+                font-size: 0.7rem;
+                padding: 0.3rem 0.8rem;
             }
         }
     </style>
@@ -359,28 +471,28 @@
             <div class="collapse navbar-collapse" id="navbarMain">
                 <ul class="navbar-nav me-auto gap-1">
                     <li class="nav-item">
-                        <a class="nav-link" href="<?= APP_URL ?>/game">
+                        <a class="nav-link <?= ($activePage ?? 'dashboard') === 'game' ? 'active' : '' ?>" href="<?= APP_URL ?>/game">
                             <i class="bi bi-joystick"></i>Jugar
                         </a>
                     </li>
                     <li class="nav-item">
-                        <a class="nav-link" href="<?= APP_URL ?>/profile">
+                        <a class="nav-link <?= ($activePage ?? 'dashboard') === 'profile' ? 'active' : '' ?>" href="<?= APP_URL ?>/profile">
                             <i class="bi bi-person-circle"></i>Perfil
                         </a>
                     </li>
                     <li class="nav-item">
-                        <a class="nav-link" href="<?= APP_URL ?>/statistics">
+                        <a class="nav-link <?= ($activePage ?? 'dashboard') === 'statistics' ? 'active' : '' ?>" href="<?= APP_URL ?>/statistics">
                             <i class="bi bi-bar-chart-line"></i>Stats
                         </a>
                     </li>
                     <li class="nav-item">
-                        <a class="nav-link" href="<?= APP_URL ?>/ranking">
+                        <a class="nav-link <?= ($activePage ?? 'dashboard') === 'ranking' ? 'active' : '' ?>" href="<?= APP_URL ?>/ranking">
                             <i class="bi bi-trophy"></i>Ranking
                         </a>
                     </li>
                     <?php if (in_array($role ?? 'guest', ['armador', 'admin'])): ?>
                         <li class="nav-item dropdown">
-                            <a class="nav-link dropdown-toggle" href="#" role="button" data-bs-toggle="dropdown">
+                            <a class="nav-link dropdown-toggle <?= ($activePage ?? 'dashboard') === 'admin' ? 'active' : '' ?>" href="#" role="button" data-bs-toggle="dropdown">
                                 <i class="bi bi-gear"></i>Admin
                             </a>
                             <ul class="dropdown-menu">
@@ -389,8 +501,8 @@
                                 <li><a class="dropdown-item" href="<?= APP_URL ?>/admin/questions"><i class="bi bi-question-circle"></i>Preguntas</a></li>
                                 <li><a class="dropdown-item" href="<?= APP_URL ?>/admin/prizes"><i class="bi bi-trophy"></i>Premios</a></li>
                                 <li><a class="dropdown-item" href="<?= APP_URL ?>/admin/surveys"><i class="bi bi-clipboard-data"></i>Encuestas</a></li>
-                                <li><a class="dropdown-item" href="<?= APP_URL ?>/admin/feedback"><i class="bi bi-chat-heart"></i>Evaluación</a></li>
-                                <li><a class="dropdown-item" href="<?= APP_URL ?>/admin/qr"><i class="bi bi-qr-code"></i>Códigos QR</a></li>
+                                <li><a class="dropdown-item" href="<?= APP_URL ?>/admin/feedback"><i class="bi bi-chat-heart"></i>Evaluacion</a></li>
+                                <li><a class="dropdown-item" href="<?= APP_URL ?>/admin/qr"><i class="bi bi-qr-code"></i>Codigos QR</a></li>
                                 <?php if (($role ?? 'guest') === 'admin'): ?>
                                     <li><hr class="dropdown-divider"></li>
                                     <li><a class="dropdown-item" href="<?= APP_URL ?>/admin/report"><i class="bi bi-file-earmark-excel"></i>Reporte Excel</a></li>
@@ -416,9 +528,20 @@
         </div>
     </nav>
 
-    <div class="container mt-4 mb-5 animate-slide">
-        <?= $content ?? '' ?>
+    <div class="main-content">
+        <div class="container mt-4 mb-5 animate-slide">
+            <?= $content ?? '' ?>
+        </div>
     </div>
+
+    <!-- ============================================
+         FOOTER
+    ============================================ -->
+    <footer class="footer-innovative">
+        <div class="container text-center">
+            <small>&copy; <?= date('Y') ?> <span>Trivias</span> — Desarrollo de Software VII - Proyecto Semestral</small>
+        </div>
+    </footer>
 
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
     <script src="https://code.jquery.com/jquery-3.7.1.min.js"></script>

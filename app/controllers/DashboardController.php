@@ -32,7 +32,8 @@ class DashboardController extends Controller
             'accuracy' => $accuracy,
             'recentActivity' => $recentActivity,
             'survey' => $survey,
-            'csrfToken' => $csrfToken
+            'csrfToken' => $csrfToken,
+            'activePage' => 'dashboard'
         ]);
     }
 }

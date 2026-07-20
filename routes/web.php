@@ -21,10 +21,10 @@ $router->get('/game/room/create', 'GameController', 'createRoom');
 $router->post('/game/room/store', 'GameController', 'storeRoom');
 $router->get('/game/room/{roomCode}', 'GameController', 'joinRoom');
 
-// Acceso directo por código QR
+// Acceso directo por codigo QR
 $router->get('/qr/{themeLevelId}', 'GameController', 'accessByQr');
 
-// Panel de administración: generar/ver los códigos QR de cada tema-nivel
+// Panel de administracion: generar/ver los codigos QR de cada tema-nivel
 $router->get('/admin/qr', 'QrController', 'index');
 
 // Perfil
@@ -39,7 +39,7 @@ $router->post('/avatars/activate/{id}', 'AvatarController', 'activate');
 $router->post('/avatars/deactivate/{id}', 'AvatarController', 'deactivate');
 $router->post('/avatars/delete/{id}', 'AvatarController', 'destroy');
 
-// Estadísticas
+// Estadisticas
 $router->get('/statistics', 'StatisticsController', 'index');
 
 // Ranking
@@ -88,15 +88,16 @@ $router->get('/admin/surveys/edit/{id}', 'SurveyController', 'edit');
 $router->post('/admin/surveys/update/{id}', 'SurveyController', 'update');
 $router->post('/admin/surveys/delete/{id}', 'SurveyController', 'delete');
 
-//Admin Feedback
+// Admin Feedback
 $router->post('/feedback/rate-app', 'FeedbackController', 'rateApp');
 $router->post('/feedback/suggest-theme', 'FeedbackController', 'suggestTheme');
 $router->get('/admin/feedback', 'FeedbackController', 'adminIndex');
 
-// Landing pública
+// Landing publica
 $router->get('/', 'LandingController', 'index');
 $router->get('/about', 'LandingController', 'about');
 $router->get('/contact', 'LandingController', 'contact');
+$router->get('/team', 'LandingController', 'team');
 
 // Promocional con encuestas
 $router->get('/promo', 'PromoController', 'index');

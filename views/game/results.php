@@ -1,9 +1,10 @@
 <style>
-    /* ---------- Contenedor del ícono animado ---------- */
     .result-icon-animated {
         font-size: 5rem;
         display: inline-block;
         margin-bottom: 0.5rem;
+        position: relative;
+        z-index: 3;
     }
 
     .result-icon-animated.tier-perfect {
@@ -38,6 +39,101 @@
         top: -10px;
         opacity: 0.9;
         animation: confetti-fall 1.8s ease-in forwards;
+        z-index: 1;
+    }
+
+    .celebration-static {
+        position: absolute;
+        font-size: 2.2rem;
+        opacity: 0.7;
+        pointer-events: none;
+        z-index: 2;
+        animation: float-static 3s ease-in-out infinite;
+    }
+
+    .celebration-static-1 {
+        top: 2%;
+        left: 2%;
+        font-size: 3.2rem;
+        color: #fbbf24;
+        animation-delay: 0s;
+    }
+
+    .celebration-static-2 {
+        top: 2%;
+        right: 2%;
+        font-size: 3.2rem;
+        color: #f472b6;
+        animation-delay: 0.5s;
+    }
+
+    .celebration-static-3 {
+        bottom: 10%;
+        left: 2%;
+        font-size: 2.8rem;
+        color: #60a5fa;
+        animation-delay: 1s;
+    }
+
+    .celebration-static-4 {
+        bottom: 10%;
+        right: 2%;
+        font-size: 2.8rem;
+        color: #34d399;
+        animation-delay: 1.5s;
+    }
+
+    .celebration-static-5 {
+        top: 35%;
+        left: 0.5%;
+        font-size: 2.2rem;
+        color: #a78bfa;
+        animation-delay: 0.3s;
+    }
+
+    .celebration-static-6 {
+        top: 35%;
+        right: 0.5%;
+        font-size: 2.2rem;
+        color: #f59e0b;
+        animation-delay: 0.8s;
+    }
+
+    .celebration-static-7 {
+        top: 15%;
+        left: 15%;
+        font-size: 1.8rem;
+        color: #fb923c;
+        animation-delay: 0.2s;
+    }
+
+    .celebration-static-8 {
+        top: 15%;
+        right: 15%;
+        font-size: 1.8rem;
+        color: #f87171;
+        animation-delay: 0.7s;
+    }
+
+    .celebration-static-9 {
+        bottom: 25%;
+        left: 15%;
+        font-size: 1.8rem;
+        color: #facc15;
+        animation-delay: 1.2s;
+    }
+
+    .celebration-static-10 {
+        bottom: 25%;
+        right: 15%;
+        font-size: 1.8rem;
+        color: #a78bfa;
+        animation-delay: 1.7s;
+    }
+
+    @keyframes float-static {
+        0%, 100% { transform: translateY(0) scale(1) rotate(0deg); }
+        50% { transform: translateY(-10px) scale(1.08) rotate(5deg); }
     }
 
     @keyframes bounce-in {
@@ -48,7 +144,7 @@
 
     @keyframes glow-pulse {
         0%, 100% { filter: drop-shadow(0 0 4px rgba(212,175,55,0.5)); transform: scale(1); }
-        50%      { filter: drop-shadow(0 0 16px rgba(212,175,55,0.9)); transform: scale(1.08); }
+        50%      { filter: drop-shadow(0 0 20px rgba(212,175,55,0.9)); transform: scale(1.08); }
     }
 
     @keyframes pulse-scale {
@@ -75,7 +171,7 @@
 
     @keyframes confetti-fall {
         0%   { transform: translateY(0) rotate(0deg); opacity: 1; }
-        100% { transform: translateY(120px) rotate(360deg); opacity: 0; }
+        100% { transform: translateY(140px) rotate(720deg); opacity: 0; }
     }
 
     .results-header-innovative {
@@ -86,47 +182,91 @@
         text-align: center;
         position: relative;
         margin-bottom: 2rem;
+        overflow: hidden;
+        min-height: 280px;
     }
 
-    .results-header-innovative::before {
-        content: '★';
-        position: absolute;
-        top: -8px;
-        left: 50%;
-        transform: translateX(-50%);
-        background: var(--primary);
-        color: white;
-        padding: 0 1rem;
-        font-size: 0.8rem;
-    }
-
-    .results-header-innovative .result-icon {
-        font-size: 4rem;
-        display: block;
-        margin-bottom: 0.5rem;
-    }
-
-    .results-header-innovative .result-icon.pass {
-        color: var(--success);
-    }
-
-    .results-header-innovative .result-icon.fail {
-        color: var(--danger);
-    }
-
-    .results-header-innovative h2 {
+    .result-title-large {
         font-family: var(--font-display);
         font-weight: 900;
-        font-size: 2rem;
+        font-size: 2.8rem;
         color: var(--text-dark);
         text-transform: uppercase;
         letter-spacing: -1px;
+        margin-top: 0.5rem;
+        position: relative;
+        z-index: 3;
     }
 
-    .results-header-innovative .result-subtitle {
+    .result-title-large .highlight-perfect {
+        background: linear-gradient(135deg, #d4af37, #fbbf24);
+        -webkit-background-clip: text;
+        -webkit-text-fill-color: transparent;
+        background-clip: text;
+    }
+
+    .result-title-large .highlight-excellent {
+        background: linear-gradient(135deg, var(--primary), #7c3aed);
+        -webkit-background-clip: text;
+        -webkit-text-fill-color: transparent;
+        background-clip: text;
+    }
+
+    .result-title-large .highlight-good {
+        color: #22c55e;
+    }
+
+    .result-title-large .highlight-practice {
+        color: #f59e0b;
+    }
+
+    .result-title-large .highlight-retry {
+        color: #64748b;
+    }
+
+    .result-subtitle {
         color: var(--text-gray);
         font-family: var(--font-display);
         font-size: 1.1rem;
+        margin-top: 0.2rem;
+        position: relative;
+        z-index: 3;
+    }
+
+    .celebration-message {
+        font-family: var(--font-display);
+        font-size: 1rem;
+        color: var(--text-gray);
+        margin-top: 0.3rem;
+        font-weight: 400;
+        position: relative;
+        z-index: 3;
+    }
+
+    .celebration-message i {
+        color: var(--primary);
+        margin: 0 0.2rem;
+    }
+
+    .result-divider {
+        border: none;
+        border-top: 3px solid var(--border-dark);
+        margin: 0.5rem auto 1rem;
+        width: 80px;
+        position: relative;
+        z-index: 3;
+    }
+
+    .result-divider::after {
+        content: '◆';
+        position: absolute;
+        top: 50%;
+        left: 50%;
+        transform: translate(-50%, -50%);
+        background: var(--bg-card);
+        padding: 0 0.8rem;
+        color: var(--primary);
+        font-size: 0.6rem;
     }
 
     .result-stats-innovative {
@@ -192,23 +332,69 @@
         font-family: var(--font-display);
         font-weight: 600;
         color: var(--text-dark);
-        margin-bottom: 0.3rem;
+        margin-bottom: 0.5rem;
+        font-size: 1rem;
     }
 
-    .result-detail-card .detail-answer {
+    .result-detail-card .detail-q .q-number {
         font-family: var(--font-mono);
-        font-size: 0.85rem;
+        font-size: 0.7rem;
+        color: var(--text-light);
+        margin-right: 0.5rem;
+    }
+
+    .result-detail-card .detail-answer-row {
+        display: flex;
+        align-items: center;
+        gap: 0.5rem;
+        padding: 0.2rem 0;
+        font-family: var(--font-display);
+        font-size: 0.9rem;
         color: var(--text-gray);
+        flex-wrap: wrap;
     }
 
-    .result-detail-card .detail-answer .correct {
+    .result-detail-card .detail-label {
+        font-family: var(--font-mono);
+        font-size: 0.65rem;
+        font-weight: 600;
+        text-transform: uppercase;
+        letter-spacing: 0.3px;
+        color: var(--text-light);
+        min-width: 110px;
+    }
+
+    .result-detail-card .icon-correct {
         color: var(--success);
-        font-weight: 700;
+        font-size: 1.1rem;
     }
 
-    .result-detail-card .detail-answer .incorrect {
+    .result-detail-card .icon-incorrect {
         color: var(--danger);
-        font-weight: 700;
+        font-size: 1.1rem;
+    }
+
+    .result-detail-card .answer-text.correct-text {
+        color: var(--success);
+        font-weight: 500;
+    }
+
+    .result-detail-card .answer-text.incorrect-text {
+        color: var(--danger);
+        font-weight: 500;
+    }
+
+    .result-detail-card .detail-answer-status {
+        font-weight: 600;
+        font-size: 0.8rem;
+    }
+
+    .result-detail-card .detail-answer-status.correct {
+        color: var(--success);
+    }
+
+    .result-detail-card .detail-answer-status.incorrect {
+        color: var(--danger);
     }
 
     .result-detail-card .badge-result {
@@ -232,6 +418,14 @@
         background: #fee2e2;
         color: #dc2626;
         border-color: #dc2626;
+    }
+
+    .detail-response-correct {
+        border-left: 4px solid var(--success);
+    }
+
+    .detail-response-incorrect {
+        border-left: 4px solid var(--danger);
     }
 
     .btn-again-innovative {
@@ -278,29 +472,9 @@
         box-shadow: 6px 6px 0px var(--primary);
     }
 
-    .divider-innovative {
-        border: none;
-        border-top: 3px solid var(--border-dark);
-        margin: 2rem 0;
-        position: relative;
-    }
-
-    .divider-innovative::after {
-        content: '◆';
-        position: absolute;
-        top: 50%;
-        left: 50%;
-        transform: translate(-50%, -50%);
-        background: var(--bg-page);
-        padding: 0 1rem;
-        color: var(--primary);
-        font-size: 0.8rem;
-    }
-
-    /* ---------- Bloque de premio ganado ---------- */
     .prize-won-banner {
         background: linear-gradient(135deg, #fffbeb 0%, var(--bg-card) 100%);
-        border: 3px solid var(--gold, #d4af37);
+        border: 3px solid #d4af37;
         box-shadow: 6px 6px 0px var(--border-dark);
         padding: 1.5rem 2rem;
         margin-bottom: 2rem;
@@ -358,12 +532,46 @@
         color: var(--primary);
     }
 
+    .divider-innovative {
+        border: none;
+        border-top: 3px solid var(--border-dark);
+        margin: 2rem 0;
+        position: relative;
+    }
+
+    .divider-innovative::after {
+        content: '◆';
+        position: absolute;
+        top: 50%;
+        left: 50%;
+        transform: translate(-50%, -50%);
+        background: var(--bg-page);
+        padding: 0 1rem;
+        color: var(--primary);
+        font-size: 0.8rem;
+    }
+
+    .extra-confetti-container {
+        position: absolute;
+        top: 0;
+        left: 0;
+        width: 100%;
+        height: 100%;
+        pointer-events: none;
+        z-index: 0;
+        overflow: hidden;
+    }
+
     @media (max-width: 768px) {
         .result-stats-innovative {
             grid-template-columns: repeat(2, 1fr);
         }
-        .results-header-innovative h2 { font-size: 1.5rem; }
-        .result-stat-innovative .stat-number { font-size: 1.8rem; }
+        .result-title-large {
+            font-size: 1.8rem;
+        }
+        .result-stat-innovative .stat-number {
+            font-size: 1.8rem;
+        }
         .btn-again-innovative, .btn-home-innovative {
             width: 100%;
             text-align: center;
@@ -379,6 +587,74 @@
             width: 48px;
             height: 48px;
         }
+        .celebration-static-1,
+        .celebration-static-2 {
+            font-size: 2.2rem;
+            top: 2%;
+        }
+        .celebration-static-3,
+        .celebration-static-4 {
+            font-size: 1.8rem;
+            bottom: 8%;
+        }
+        .celebration-static-5,
+        .celebration-static-6 {
+            display: none;
+        }
+        .celebration-static-7,
+        .celebration-static-8,
+        .celebration-static-9,
+        .celebration-static-10 {
+            display: none;
+        }
+        .results-header-innovative {
+            min-height: 220px;
+            padding: 1.5rem;
+        }
+        .result-detail-card {
+            padding: 1rem;
+        }
+        .result-detail-card .detail-answer-row {
+            font-size: 0.8rem;
+        }
+        .result-detail-card .detail-label {
+            min-width: 80px;
+            font-size: 0.55rem;
+        }
+        .result-detail-card .badge-result {
+            font-size: 0.5rem;
+            padding: 0.1rem 0.6rem;
+        }
+    }
+
+    @media (max-width: 480px) {
+        .celebration-static-1,
+        .celebration-static-2 {
+            font-size: 1.5rem;
+            top: 1%;
+        }
+        .celebration-static-3,
+        .celebration-static-4 {
+            font-size: 1.2rem;
+            bottom: 5%;
+        }
+        .result-title-large {
+            font-size: 1.4rem;
+        }
+        .result-icon-animated {
+            font-size: 3.5rem;
+        }
+        .results-header-innovative {
+            min-height: 180px;
+            padding: 1rem;
+        }
+        .result-detail-card .detail-q {
+            font-size: 0.9rem;
+        }
+        .result-detail-card .detail-label {
+            min-width: 60px;
+            font-size: 0.5rem;
+        }
     }
 </style>
 
@@ -390,58 +666,117 @@ $total = $result['total'] ?? 0;
 if ($total > 0 && $correct === $total) {
     $tier = 'perfect';
     $bsIcon = 'bi-trophy-fill';
-    $title = '¡PERFECTO! ' . $correct . '/' . $total;
-    $subtitle = '¡Respondiste absolutamente todo correctamente!';
+    $title = 'PERFECTO';
+    $highlightClass = 'highlight-perfect';
+    $subtitle = 'Respondiste absolutamente todo correctamente';
+    $showCelebration = true;
 } elseif ($percentage >= 80) {
     $tier = 'excellent';
     $bsIcon = 'bi-star-fill';
-    $title = '¡Excelente!';
-    $subtitle = 'Has superado el nivel con éxito';
+    $title = 'Excelente';
+    $highlightClass = 'highlight-excellent';
+    $subtitle = 'Has superado el nivel con exito';
+    $showCelebration = false;
 } elseif ($percentage >= 50) {
     $tier = 'good';
     $bsIcon = 'bi-hand-thumbs-up-fill';
-    $title = '¡Bien hecho!';
-    $subtitle = 'Vas por buen camino, sigue así';
+    $title = 'Bien hecho';
+    $highlightClass = 'highlight-good';
+    $subtitle = 'Vas por buen camino, sigue asi';
+    $showCelebration = false;
 } elseif ($percentage > 0) {
     $tier = 'practice';
     $bsIcon = 'bi-bullseye';
     $title = 'Sigue practicando';
-    $subtitle = 'Cada intento te acerca más a dominarlo';
+    $highlightClass = 'highlight-practice';
+    $subtitle = 'Cada intento te acerca mas a dominarlo';
+    $showCelebration = false;
 } else {
     $tier = 'retry';
     $bsIcon = 'bi-emoji-smile-fill';
     $title = 'No te rindas';
-    $subtitle = 'Vuelve a intentarlo, tú puedes lograrlo';
+    $highlightClass = 'highlight-retry';
+    $subtitle = 'Vuelve a intentarlo, tu puedes lograrlo';
+    $showCelebration = false;
 }
 
 $passed = $percentage >= 80;
 ?>
 
-<div class="results-header-innovative" style="position:relative; overflow:hidden;">
-    <?php if ($tier === 'perfect'): ?>
-        <?php
-        $confettiColors = ['#fbbf24', '#f472b6', '#60a5fa', '#34d399', '#a78bfa'];
-        for ($i = 0; $i < 14; $i++):
-            $left = rand(5, 95);
-            $delay = rand(0, 8) / 10;
-            $color = $confettiColors[array_rand($confettiColors)];
-        ?>
-            <span class="confetti-piece" style="left:<?= $left ?>%; background:<?= $color ?>; animation-delay:<?= $delay ?>s;"></span>
-        <?php endfor; ?>
+<div class="results-header-innovative">
+
+    <?php if ($showCelebration): ?>
+        <div class="extra-confetti-container">
+            <?php
+            $confettiColors = ['#fbbf24', '#f472b6', '#60a5fa', '#34d399', '#a78bfa', '#fb923c', '#f87171', '#facc15'];
+            for ($i = 0; $i < 25; $i++):
+                $left = rand(2, 98);
+                $delay = rand(0, 12) / 10;
+                $duration = 1.2 + (rand(0, 10) / 10);
+                $size = rand(5, 10);
+                $color = $confettiColors[array_rand($confettiColors)];
+                $rotation = rand(0, 360);
+            ?>
+                <span class="confetti-piece" style="left:<?= $left ?>%; background:<?= $color ?>; animation-delay:<?= $delay ?>s; animation-duration:<?= $duration ?>s; width:<?= $size ?>px; height:<?= $size ?>px; transform:rotate(<?= $rotation ?>deg);"></span>
+            <?php endfor; ?>
+        </div>
+
+        <div class="celebration-static celebration-static-1">
+            <i class="bi bi-stars"></i>
+        </div>
+        <div class="celebration-static celebration-static-2">
+            <i class="bi bi-stars"></i>
+        </div>
+        <div class="celebration-static celebration-static-3">
+            <i class="bi bi-emoji-party"></i>
+        </div>
+        <div class="celebration-static celebration-static-4">
+            <i class="bi bi-emoji-party"></i>
+        </div>
+        <div class="celebration-static celebration-static-5">
+            <i class="bi bi-balloon"></i>
+        </div>
+        <div class="celebration-static celebration-static-6">
+            <i class="bi bi-balloon"></i>
+        </div>
+        <div class="celebration-static celebration-static-7">
+            <i class="bi bi-hand-thumbs-up"></i>
+        </div>
+        <div class="celebration-static celebration-static-8">
+            <i class="bi bi-hand-thumbs-up"></i>
+        </div>
+        <div class="celebration-static celebration-static-9">
+            <i class="bi bi-award"></i>
+        </div>
+        <div class="celebration-static celebration-static-10">
+            <i class="bi bi-award"></i>
+        </div>
     <?php endif; ?>
 
     <span class="result-icon-animated tier-<?= $tier ?>">
         <i class="bi <?= $bsIcon ?>"></i>
     </span>
-    <h2><?= htmlspecialchars($title) ?></h2>
+
+    <div class="result-title-large">
+        <span class="<?= $highlightClass ?>"><?= htmlspecialchars($title) ?></span>
+    </div>
+
+    <hr class="result-divider">
+
     <p class="result-subtitle"><?= htmlspecialchars($subtitle) ?></p>
+
+    <p class="celebration-message">
+        <i class="bi bi-arrow-right-short"></i>
+        Sigue asi, cada partida te hace mejor programador
+        <i class="bi bi-arrow-left-short"></i>
+    </p>
 </div>
 
 <?php if (!empty($newPrizes)): ?>
     <div class="prize-won-banner">
         <span class="prize-won-label">
             <i class="bi bi-gift-fill me-1"></i>
-            <?= count($newPrizes) === 1 ? '¡Ganaste un premio nuevo!' : '¡Ganaste premios nuevos!' ?>
+            <?= count($newPrizes) === 1 ? 'Ganaste un premio nuevo' : 'Ganaste premios nuevos' ?>
         </span>
         <div class="prize-won-grid">
             <?php foreach ($newPrizes as $prize): ?>
@@ -458,7 +793,7 @@ $passed = $percentage >= 80;
 <div class="result-stats-innovative">
     <div class="result-stat-innovative">
         <div class="stat-number <?= $passed ? 'green' : 'red' ?>"><?= $result['percentage'] ?? 0 ?>%</div>
-        <span class="stat-label">Precisión</span>
+        <span class="stat-label">Precision</span>
     </div>
     <div class="result-stat-innovative">
         <div class="stat-number blue"><?= $result['correct'] ?? 0 ?>/<?= $result['total'] ?? 0 ?></div>
@@ -482,31 +817,56 @@ $passed = $percentage >= 80;
     <h4 style="font-family: var(--font-display); font-weight: 700; text-transform: uppercase; letter-spacing: 0.5px; font-size: 0.9rem; margin-bottom: 1rem;">
         <i class="bi bi-list-ul me-2" style="color: var(--primary);"></i>Detalle de respuestas
     </h4>
+
     <?php foreach ($responses as $idx => $r): ?>
-        <div class="result-detail-card">
-            <div class="d-flex align-items-start justify-content-between gap-2">
-                <div>
-                    <div class="detail-q">
-                        <span style="font-family: var(--font-mono); font-size: 0.7rem; color: var(--text-light); margin-right: 0.5rem;">#<?= $idx + 1 ?></span>
-                        <?= htmlspecialchars($r->question_text ?? 'Pregunta') ?>
-                    </div>
-                    <div class="detail-answer">
-                        <i class="bi bi-arrow-right-short me-1"></i>
-                        Tu respuesta: 
-                        <span class="<?= $r->is_correct ? 'correct' : 'incorrect' ?>">
-                            <?= $r->is_correct ? '✓ Correcta' : '✗ Incorrecta' ?>
-                        </span>
-                        <?php if (!empty($r->response_time_ms)): ?>
-                            <span style="color: var(--text-light); font-size: 0.75rem; margin-left: 0.5rem;">
-                                (<?= round($r->response_time_ms / 1000, 1) ?>s)
-                            </span>
-                        <?php endif; ?>
-                    </div>
+        <div class="result-detail-card <?= $r->is_correct ? 'detail-response-correct' : 'detail-response-incorrect' ?>">
+
+            <div class="detail-q">
+                <span class="q-number">#<?= $idx + 1 ?></span>
+                <?= htmlspecialchars($r->question_text ?? 'Pregunta') ?>
+            </div>
+
+            <?php if ($r->is_correct): ?>
+                <div class="detail-answer-row">
+                    <span class="detail-label">Respondiste:</span>
+                    <span class="icon-correct">
+                        <i class="bi bi-check-circle-fill"></i>
+                    </span>
+                    <span class="answer-text correct-text">
+                        <?= htmlspecialchars($r->user_answer_text ?? 'Respuesta correcta') ?>
+                    </span>
+                    <span class="detail-answer-status correct"></span>
                 </div>
+
+            <?php else: ?>
+                <div class="detail-answer-row">
+                    <span class="detail-label">Respondiste:</span>
+                    <span class="icon-incorrect">
+                        <i class="bi bi-x-circle-fill"></i>
+                    </span>
+                    <span class="answer-text incorrect-text">
+                        <?= htmlspecialchars($r->user_answer_text ?? 'Respuesta incorrecta') ?>
+                    </span>
+                    <span class="detail-answer-status incorrect"></span>
+                </div>
+                <div class="detail-answer-row">
+                    <span class="detail-label">Respuesta correcta:</span>
+                    <span class="icon-correct">
+                        <i class="bi bi-check-circle-fill"></i>
+                    </span>
+                    <span class="answer-text correct-text">
+                        <?= htmlspecialchars($r->correct_answer_text ?? 'Respuesta correcta') ?>
+                    </span>
+                    <span class="detail-answer-status correct"></span>
+                </div>
+            <?php endif; ?>
+
+            <div class="detail-answer-row" style="margin-top: 0.3rem;">
                 <span class="badge-result <?= $r->is_correct ? 'badge-result-correct' : 'badge-result-incorrect' ?>">
-                    <?= $r->is_correct ? '✓ Acierto' : '✗ Fallo' ?>
+                    <?= $r->is_correct ? 'Correcta' : 'Incorrecta' ?>
                 </span>
             </div>
+
         </div>
     <?php endforeach; ?>
 <?php endif; ?>

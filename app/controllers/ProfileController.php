@@ -21,7 +21,7 @@ class ProfileController extends Controller
         $avatars = Avatar::byUser($userId);
         $csrfToken = Session::csrfToken();
 
-        $this->render('profile/show', compact('user', 'progress', 'prizes', 'avatars', 'csrfToken'));
+        $this->render('profile/show', compact('user', 'progress', 'prizes', 'avatars', 'csrfToken') + ['activePage' => 'profile']);
     }
 
     public function updateAvatar()

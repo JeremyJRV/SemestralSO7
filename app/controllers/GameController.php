@@ -3,6 +3,7 @@ namespace App\Controllers;
 
 use clases\Controller;
 use clases\Session;
+use clases\Database;
 use App\Models\GameSession;
 use App\Models\GameResponse;
 use App\Models\AppRating;
@@ -34,7 +35,8 @@ class GameController extends Controller
             'hasRatedApp' => $hasRatedApp,
             'hasSuggested' => $hasSuggested,
             'myScores' => $myScores,
-            'csrfToken' => $csrfToken
+            'csrfToken' => $csrfToken,
+            'activePage' => 'game'
         ]);
     }
 
@@ -92,43 +94,71 @@ class GameController extends Controller
         $this->redirect("/game/results/{$sessionId}");
     }
 
-    public function results($sessionId)
-    {
-        $session = GameSession::find($sessionId);
-        $responses = GameResponse::whereMultiple([
-            'session_id' => $sessionId,
-            'user_id' => Session::get('user_id')
-        ]);
 
-        $total = count($responses);
-        $correct = 0;
-        $totalTime = 0;
-        foreach ($responses as $r) {
-            if ($r->is_correct) $correct++;
-            $totalTime += (int)$r->response_time_ms;
+public function results($sessionId)
+{
+    $session = GameSession::find($sessionId);
+    $responses = GameResponse::whereMultiple([
+        'session_id' => $sessionId,
+        'user_id' => Session::get('user_id')
+    ]);
+
+    // Obtener textos de opciones para cada respuesta
+    $db = Database::getInstance()->getConnection();
+    foreach ($responses as $r) {
+        // Obtener el texto de la opcion que eligio el usuario
+        if ($r->selected_option_id) {
+            $stmt = $db->prepare("SELECT text FROM options WHERE id = :id");
+            $stmt->execute(['id' => $r->selected_option_id]);
+            $opt = $stmt->fetch();
+            $r->user_answer_text = $opt ? $opt['text'] : null;
+        } else if ($r->boolean_answer !== null) {
+            $r->user_answer_text = $r->boolean_answer ? 'Verdadero' : 'Falso';
+        } else {
+            $r->user_answer_text = null;
         }
-        $percentage = $total > 0 ? round(($correct / $total) * 100, 2) : 0;
-        $avgTime = $total > 0 ? $totalTime / $total : 0;
-        $pointsEarned = $correct * 10;
 
-        $result = [
-            'correct' => $correct,
-            'total' => $total,
-            'percentage' => $percentage,
-            'avg_time_ms' => $avgTime,
-            'points_earned' => $pointsEarned
-        ];
-
-        $newPrizes = Session::get('last_prizes_awarded_' . $sessionId) ?? [];
-        Session::remove('last_prizes_awarded_' . $sessionId);
-
-        $this->render('game/results', [
-            'session' => $session,
-            'responses' => $responses,
-            'result' => $result,
-            'newPrizes' => $newPrizes
-        ]);
+        // Obtener el texto de la opcion correcta
+        $stmt = $db->prepare(
+            "SELECT text FROM options WHERE question_id = :qid AND is_correct = 1"
+        );
+        $stmt->execute(['qid' => $r->question_id]);
+        $opt = $stmt->fetch();
+        $r->correct_answer_text = $opt ? $opt['text'] : null;
     }
+
+    $total = count($responses);
+    $correct = 0;
+    $totalTime = 0;
+    foreach ($responses as $r) {
+        if ($r->is_correct) $correct++;
+        $totalTime += (int)$r->response_time_ms;
+    }
+    $percentage = $total > 0 ? round(($correct / $total) * 100, 2) : 0;
+    $avgTime = $total > 0 ? $totalTime / $total : 0;
+    $pointsEarned = $correct * 10;
+
+    $result = [
+        'correct' => $correct,
+        'total' => $total,
+        'percentage' => $percentage,
+        'avg_time_ms' => $avgTime,
+        'points_earned' => $pointsEarned
+    ];
+
+    $newPrizes = Session::get('last_prizes_awarded_' . $sessionId) ?? [];
+    Session::remove('last_prizes_awarded_' . $sessionId);
+
+    $this->render('game/results', [
+        'session' => $session,
+        'responses' => $responses,
+        'result' => $result,
+        'newPrizes' => $newPrizes
+    ]);
+}
+
+
+
 
     public function createRoom()
     {

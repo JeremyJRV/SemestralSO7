@@ -1,4 +1,5 @@
 <?php
+
 namespace App\Models;
 
 use clases\Model;
@@ -15,10 +16,13 @@ class GameResponse extends Model
         $where = [];
         $params = [];
         foreach ($conditions as $field => $value) {
-            $where[] = "$field = :$field";
+            $where[] = "gr.$field = :$field";
             $params[$field] = $value;
         }
-        $sql = "SELECT * FROM game_responses WHERE " . implode(' AND ', $where);
+        $sql = "SELECT gr.*, q.text AS question_text 
+            FROM game_responses gr
+            JOIN questions q ON q.id = gr.question_id
+            WHERE " . implode(' AND ', $where);
         $stmt = $db->prepare($sql);
         $stmt->execute($params);
         $rows = $stmt->fetchAll();
