@@ -17,6 +17,16 @@ class ThemeSuggestion extends Model
         $themeSuggestion->save();
     }
 
+    public static function hasUserSuggested(int $userId): bool
+    {
+        $db = Database::getInstance()->getConnection();
+        $stmt = $db->prepare(
+            "SELECT 1 FROM theme_suggestions WHERE user_id = :uid LIMIT 1"
+        );
+        $stmt->execute(['uid' => $userId]);
+        return (bool)$stmt->fetch();
+    }
+
     public static function all(): array
     {
         $db = Database::getInstance()->getConnection();

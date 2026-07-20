@@ -399,7 +399,8 @@
     </div>
 </div>
 
-<div class="row mt-4">
+<?php if (!($hasRatedApp && $hasSuggested)): ?>
+<div class="row mt-4" id="feedbackCard">
     <div class="col-12">
         <div class="game-mode-card-innovative" style="text-align:left;">
             <?php if (!$hasRatedApp): ?>
@@ -433,6 +434,7 @@
         </div>
     </div>
 </div>
+<?php endif; ?>
 
 <hr class="divider-innovative">
 
@@ -442,6 +444,20 @@
 </div>
 
 <script>
+let hasRatedApp = <?= $hasRatedApp ? 'true' : 'false' ?>;
+let hasSuggested = <?= $hasSuggested ? 'true' : 'false' ?>;
+
+function hideFeedbackCardIfDone() {
+    if (hasRatedApp && hasSuggested) {
+        const card = document.getElementById('feedbackCard');
+        if (card) {
+            card.style.transition = 'opacity 0.4s ease';
+            card.style.opacity = '0';
+            setTimeout(() => card.remove(), 400);
+        }
+    }
+}
+
 document.querySelectorAll('.rate-btn').forEach(btn => {
     btn.addEventListener('click', function() {
         const themeId = this.dataset.theme;
@@ -507,6 +523,8 @@ document.querySelectorAll('.app-rate-btn').forEach(btn => {
             if (data.success) {
                 document.getElementById('appRatingButtons').style.display = 'none';
                 document.getElementById('appRatingThanks').style.display = 'block';
+                hasRatedApp = true;
+                hideFeedbackCardIfDone();
             } else {
                 alert(data.error || 'Error al calificar');
                 document.querySelectorAll('.app-rate-btn').forEach(b => b.disabled = false);
@@ -534,6 +552,8 @@ document.getElementById('suggestionForm').addEventListener('submit', function(e)
         if (data.success) {
             document.getElementById('suggestionInput').value = '';
             document.getElementById('suggestionThanks').style.display = 'inline';
+            hasSuggested = true;
+            hideFeedbackCardIfDone();
             setTimeout(() => {
                 document.getElementById('suggestionThanks').style.display = 'none';
             }, 3000);

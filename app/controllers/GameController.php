@@ -24,6 +24,7 @@ class GameController extends Controller
 
         $availableLevels = $this->gameService->getAvailableLevelsForUser($userId);
         $hasRatedApp = AppRating::hasUserRated($userId);
+        $hasSuggested = \App\Models\ThemeSuggestion::hasUserSuggested($userId);
         // AGREGADO: para mostrar la insignia de "100% superado" en cada
         // tarjeta de tema-nivel que el usuario ya haya jugado.
         $myScores = \App\Models\UserLevelProgress::scoresForUser($userId);
@@ -32,6 +33,7 @@ class GameController extends Controller
         $this->render('game/select', [
             'levels' => $availableLevels,
             'hasRatedApp' => $hasRatedApp,
+            'hasSuggested' => $hasSuggested,
             'myScores' => $myScores,
             'csrfToken' => $csrfToken
         ]);
