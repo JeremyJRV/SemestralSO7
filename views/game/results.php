@@ -753,6 +753,9 @@ $passed = $percentage >= 80;
         </div>
     <?php endif; ?>
 
+    <!-- Sonido según el resultado: public/audio/result-{perfect|excellent|good|practice|retry}.mp3 -->
+    <audio src="<?= APP_URL ?>/audio/result-<?= $tier ?>.mp3" autoplay></audio>
+
     <span class="result-icon-animated tier-<?= $tier ?>">
         <i class="bi <?= $bsIcon ?>"></i>
     </span>
